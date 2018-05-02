@@ -25,10 +25,11 @@
 package io.jenkins.tools.incrementals;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -46,43 +47,147 @@ public class UpdateChecker {
         void info(String message);
     }
 
-    public static @CheckForNull String find(String groupId, String artifactId, String currentVersion, String branch, List<String> repos, Log log) throws Exception {
+    public static final class VersionAndRepo implements Comparable<VersionAndRepo> {
+        public final String groupId;
+        public final String artifactId;
+        public final ComparableVersion version;
+        public final String repo;
+        VersionAndRepo(String groupId, String artifactId, ComparableVersion version, String repo) {
+            this.groupId = groupId;
+            this.artifactId = artifactId;
+            this.version = version;
+            this.repo = repo;
+        }
+        /** Sort by version descending. */
+        @Override public int compareTo(VersionAndRepo o) {
+            assert o.groupId.equals(groupId) && o.artifactId.equals(artifactId);
+            return o.version.compareTo(version);
+        }
+        /** @return for example: {@code https://repo/net/nowhere/lib/1.23/} */
+        public String baseURL() {
+            return repo + groupId.replace('.', '/') + '/' + artifactId + '/' + version + '/';
+        }
+        /**
+         * @param type for example, {@code pom}
+         * @return for example: {@code https://repo/net/nowhere/lib/1.23/lib-1.23.pom}
+         */
+        public String fullURL(String type) {
+            return baseURL() + artifactId + '-' + version + '.' + type;
+        }
+        @Override public String toString() {
+            return baseURL();
+        }
+    }
+
+    public static @CheckForNull VersionAndRepo find(String groupId, String artifactId, String currentVersion, String branch, List<String> repos, Log log) throws Exception {
         ComparableVersion currentV = new ComparableVersion(currentVersion);
-        SortedSet<ComparableVersion> candidates = loadVersions(groupId, artifactId, repos);
-        log.info("Candidates: " + candidates);
-        for (ComparableVersion candidate : candidates) {
-            if (candidate.compareTo(currentV) <= 0) {
+        log.info("Searching for updates to " + groupId + ":" + artifactId + ":" + currentV + " within " + branch);
+        SortedSet<VersionAndRepo> candidates = loadVersions(groupId, artifactId, repos);
+        if (candidates.isEmpty()) {
+            log.info("Found no candidates");
+            return null;
+        }
+        log.info("Found " + candidates.size() + " candidates from " + candidates.first() + " down to " + candidates.last());
+        for (VersionAndRepo candidate : candidates) {
+            if (candidate.version.compareTo(currentV) <= 0) {
                 log.info("Stopping search at " + candidate + " since it is no newer than " + currentV);
                 return null;
             }
             log.info("Considering " + candidate);
+            GitHubCommit ghc = loadGitHubCommit(candidate);
+            if (ghc != null) {
+                log.info("Mapped to: " + ghc);
+                // TODO call GitHub API to see whether that is an ancestor of the branch
+            } else {
+                log.info("Does not seem to be an incremental release, so accepting");
+                return candidate;
+            }
         }
         return null;
     }
 
-    private static SortedSet<ComparableVersion> loadVersions(String groupId, String artifactId, List<String> repos) throws Exception {
+    /**
+     * Look for all known versions of a given artifact.
+     * @param repos a set of repository URLs to check
+     * @return a possibly empty set of versions, sorted descending
+     */
+    private static SortedSet<VersionAndRepo> loadVersions(String groupId, String artifactId, List<String> repos) throws Exception {
         // TODO consider using official Aether APIs here (could make use of local cache)
-        SortedSet<ComparableVersion> r = new TreeSet<>(Comparator.reverseOrder());
+        SortedSet<VersionAndRepo> r = new TreeSet<>();
         for (String repo : repos) {
             String mavenMetadataURL = repo + groupId.replace('.', '/') + '/' + artifactId + "/maven-metadata.xml";
             Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(mavenMetadataURL);
-            NodeList versionsE = doc.getElementsByTagName("versions");
-            if (versionsE.getLength() != 1) {
-                throw new Exception("Cannot find <version> in " + mavenMetadataURL);
-            }
-            NodeList versionEs = ((Element) versionsE.item(0)).getElementsByTagName("version");
+            Element versionsE = theElement(doc, "versions", mavenMetadataURL);
+            NodeList versionEs = versionsE.getElementsByTagName("version");
             for (int i = 0; i < versionEs.getLength(); i++) {
-                r.add(new ComparableVersion(versionEs.item(i).getTextContent()));
+                // Not bothering to exclude timestamped snapshots for now, since we are working with release repositories anyway.
+                r.add(new VersionAndRepo(groupId, artifactId, new ComparableVersion(versionEs.item(i).getTextContent()), repo));
             }
         }
         return r;
+    }
+
+    private static final class GitHubCommit {
+        final String owner;
+        final String repo;
+        final String hash;
+        GitHubCommit(String owner, String repo, String hash) {
+            this.owner = owner;
+            this.repo = repo;
+            this.hash = hash;
+        }
+        @Override public String toString() {
+            return "https://github.com/" + owner + '/' + repo + "/commit/" + hash;
+        }
+    }
+
+    /**
+     * Parses {@code /project/scm/url} and {@code /project/scm/tag} out of a POM, if mapped to a commit.
+     */
+    private static @CheckForNull GitHubCommit loadGitHubCommit(VersionAndRepo vnr) throws Exception {
+        String pom = vnr.fullURL("pom");
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pom);
+        NodeList scmEs = doc.getElementsByTagName("scm");
+        if (scmEs.getLength() != 1) {
+            return null;
+        }
+        Element scmE = (Element) scmEs.item(0);
+        Element urlE = theElement(scmE, "url", pom);
+        String url = urlE.getTextContent();
+        Matcher m = Pattern.compile("https?://github[.]com/([^/]+)/([^/]+?)([.]git)?(/.*)?").matcher(url);
+        if (!m.matches()) {
+            throw new Exception("Unexpected /project/scm/url " + url + " in " + pom + "; expecting https://github.com/owner/repo format");
+        }
+        Element tagE = theElement(scmE, "tag", pom);
+        String tag = tagE.getTextContent();
+        String groupId = m.group(1);
+        String artifactId = m.group(2).replace("${project.artifactId}", vnr.artifactId);
+        if (!tag.matches("[a-f0-9]{40}")) {
+            return null;
+        }
+        return new GitHubCommit(groupId, artifactId, tag);
+    }
+
+    private static Element theElement(Document doc, String tagName, String url) throws Exception {
+        return theElement(doc.getElementsByTagName(tagName), tagName, url);
+    }
+
+    private static Element theElement(Element parent, String tagName, String url) throws Exception {
+        return theElement(parent.getElementsByTagName(tagName), tagName, url);
+    }
+
+    private static Element theElement(NodeList nl, String tagName, String url) throws Exception {
+        if (nl.getLength() != 1) {
+            throw new Exception("Could not find <" + tagName + "> in " + url);
+        }
+        return (Element) nl.item(0);
     }
 
     public static void main(String... argv) throws Exception {
         if (argv.length != 4) {
             throw new IllegalStateException("Usage: java " + UpdateChecker.class.getName() + " <groupId> <artifactId> <currentVersion> <branch>");
         }
-        String result = find(argv[0], argv[1], argv[2], argv[3],
+        VersionAndRepo result = find(argv[0], argv[1], argv[2], argv[3],
             Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/"),
             message -> System.err.println(message));
         if (result != null) {
