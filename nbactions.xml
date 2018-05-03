@@ -10,7 +10,7 @@
             <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
         </goals>
         <properties>
-            <exec.args>-classpath %classpath io.jenkins.tools.incrementals.UpdateChecker org.jenkins-ci.plugins git 3.8.1-rc1663.454c4a5e4d30 master</exec.args>
+            <exec.args>-classpath %classpath io.jenkins.tools.incrementals.UpdateChecker org.jenkins-ci.main jenkins-core 2.117 master</exec.args>
             <exec.executable>java</exec.executable>
         </properties>
     </action>
@@ -24,7 +24,7 @@
             <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
         </goals>
         <properties>
-            <exec.args>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath io.jenkins.tools.incrementals.UpdateChecker org.jenkins-ci.plugins git 3.8.1-rc1663.454c4a5e4d30 master</exec.args>
+            <exec.args>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath io.jenkins.tools.incrementals.UpdateChecker org.jenkins-ci.main jenkins-core 2.117 master</exec.args>
             <exec.executable>java</exec.executable>
             <jpda.listen>true</jpda.listen>
         </properties>
@@ -39,7 +39,7 @@
             <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
         </goals>
         <properties>
-            <exec.args>-classpath %classpath io.jenkins.tools.incrementals.UpdateChecker org.jenkins-ci.plugins git 3.8.1-rc1663.454c4a5e4d30 master</exec.args>
+            <exec.args>-classpath %classpath io.jenkins.tools.incrementals.UpdateChecker org.jenkins-ci.main jenkins-core 2.117 master</exec.args>
             <exec.executable>java</exec.executable>
         </properties>
     </action>

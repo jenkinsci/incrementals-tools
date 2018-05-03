@@ -33,6 +33,8 @@ import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.kohsuke.github.GHCompare;
+import org.kohsuke.github.GitHub;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -97,7 +99,12 @@ public class UpdateChecker {
             GitHubCommit ghc = loadGitHubCommit(candidate);
             if (ghc != null) {
                 log.info("Mapped to: " + ghc);
-                // TODO call GitHub API to see whether that is an ancestor of the branch
+                if (isAncestor(ghc, branch)) {
+                    log.info("Seems to be within " + branch + ", so accepting");
+                    return candidate;
+                } else {
+                    log.info("Does not seem to be within " + branch);
+                }
             } else {
                 log.info("Does not seem to be an incremental release, so accepting");
                 return candidate;
@@ -166,6 +173,18 @@ public class UpdateChecker {
             return null;
         }
         return new GitHubCommit(groupId, artifactId, tag);
+    }
+
+    /**
+     * Checks whether a commit is an ancestor of a given branch head.
+     * {@code curl -s -u … https://api.github.com/repos/<owner>/<repo>/compare/<hash>...<branch> | jq -r .status}
+     * will return {@code identical} or {@code ahead} if so, else {@code diverged}.
+     * @param branch may be {@code master} or {@code forker:branch}
+     * @see <a href="https://developer.github.com/v3/repos/commits/#compare-two-commits">Compare two commits</a>
+     */
+    private static boolean isAncestor(GitHubCommit ghc, String branch) throws Exception {
+        GHCompare.Status status = GitHub.connect().getRepository(ghc.owner + '/' + ghc.repo).getCompare(ghc.hash, branch).status;
+        return status == GHCompare.Status.identical || status == GHCompare.Status.ahead;
     }
 
     private static Element theElement(Document doc, String tagName, String url) throws Exception {
