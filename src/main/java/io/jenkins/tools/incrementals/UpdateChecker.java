@@ -107,6 +107,13 @@ public class UpdateChecker {
                 }
             } else {
                 log.info("Does not seem to be an incremental release, so accepting");
+                // TODO may still be useful to select MRP versions targeted to an origin branch.
+                // (For example, select the latest backport from a stable branch rather than trunk.)
+                // The problem is that we cannot then guarantee that the POM has been flattened
+                // (this is only guaranteed for repositories which *may* produce incrementals),
+                // and loadGitHubCommit will not work for nonflattened POMs from reactor submodules:
+                // it would have to be made more complicated to resolve the parent POM(s),
+                // or we would need to switch the implementation to use Maven/Aether resolution APIs.
                 return candidate;
             }
         }
@@ -178,7 +185,7 @@ public class UpdateChecker {
     /**
      * Checks whether a commit is an ancestor of a given branch head.
      * {@code curl -s -u … https://api.github.com/repos/<owner>/<repo>/compare/<hash>...<branch> | jq -r .status}
-     * will return {@code identical} or {@code ahead} if so, else {@code diverged}.
+     * will return {@code identical} or {@code ahead} if so, else {@code diverged} or {@code behind}.
      * @param branch may be {@code master} or {@code forker:branch}
      * @see <a href="https://developer.github.com/v3/repos/commits/#compare-two-commits">Compare two commits</a>
      */
