@@ -22,8 +22,9 @@
  * THE SOFTWARE.
  */
 
-package io.jenkins.tools.incrementals;
+package io.jenkins.tools.incrementals.lib;
 
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
@@ -130,7 +131,12 @@ public class UpdateChecker {
         SortedSet<VersionAndRepo> r = new TreeSet<>();
         for (String repo : repos) {
             String mavenMetadataURL = repo + groupId.replace('.', '/') + '/' + artifactId + "/maven-metadata.xml";
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(mavenMetadataURL);
+            Document doc;
+            try {
+                doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(mavenMetadataURL);
+            } catch (FileNotFoundException x) {
+                continue; // not even defined in this repo, fine
+            }
             Element versionsE = theElement(doc, "versions", mavenMetadataURL);
             NodeList versionEs = versionsE.getElementsByTagName("version");
             for (int i = 0; i < versionEs.getLength(); i++) {
