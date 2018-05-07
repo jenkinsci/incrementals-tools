@@ -72,21 +72,22 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
 
     @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException, ArtifactMetadataRetrievalException {
         try {
-            // TODO pick this up from the project’s <repositories>
-            List<String> repos = Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/");
+            UpdateChecker checker = new UpdateChecker(message -> getLog().info(message),
+                // TODO pick this up from the project’s <repositories>
+                Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/"));
             if (isProcessingDependencyManagement()) {
                 DependencyManagement dependencyManagement = getProject().getDependencyManagement();
                 if (dependencyManagement != null) {
-                    update(pom, dependencyManagement.getDependencies(), repos);
+                    update(pom, dependencyManagement.getDependencies(), checker);
                 }
             }
             if (isProcessingDependencies()) {
                 List<Dependency> dependencies = getProject().getDependencies();
                 if (dependencies != null) {
-                    update(pom, dependencies, repos);
+                    update(pom, dependencies, checker);
                 }
             }
-            updateProperties(pom, repos);
+            updateProperties(pom, checker);
         } catch (MojoExecutionException | MojoFailureException | XMLStreamException | ArtifactMetadataRetrievalException x) {
             throw x;
         } catch (Exception x) {
@@ -94,7 +95,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
         }
     }
 
-    private void update(ModifiedPomXMLEventReader pom, List<Dependency> dependencies, List<String> repos) throws Exception {
+    private void update(ModifiedPomXMLEventReader pom, List<Dependency> dependencies, UpdateChecker checker) throws Exception {
         for (Dependency dep : dependencies) {
             Artifact art = toArtifact(dep);
             if (!isIncluded(art)) {
@@ -117,20 +118,17 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
             String groupId = art.getGroupId();
             String artifactId = art.getArtifactId();
             // TODO need to add a caching layer here, as it can be called repeatedly with the same arguments in a reactor build
-            UpdateChecker.VersionAndRepo result = UpdateChecker.find(groupId, artifactId, version,
-                branch,
-                repos,
-                message -> getLog().info(message));
+            UpdateChecker.VersionAndRepo result = checker.find(groupId, artifactId, version, branch);
             if (result == null) {
                 getLog().info("No update found for " + toString(dep));
             } else {
-                getLog().info("Can update " + toString(dep) + " to " + result.version);
+                getLog().info("Can update dependency " + toString(dep) + " to " + result.version);
                 PomHelper.setDependencyVersion(pom, groupId, artifactId, version, result.version.toString(), getProject().getModel());
             }
         }
     }
 
-    private void updateProperties(ModifiedPomXMLEventReader pom, List<String> repos) throws Exception {
+    private void updateProperties(ModifiedPomXMLEventReader pom, UpdateChecker checker) throws Exception {
         PROPERTY: for (Map.Entry<Property, PropertyVersions> entry : getHelper().getVersionPropertiesMap(getProject(), /* TODO */ new Property[0], /* TODO */ null, null, true).entrySet()) {
             Property property = entry.getKey();
             String name = property.getName();
@@ -158,14 +156,12 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 getLog().info("No artifacts using ${" + name + "}, skipping");
                 continue;
             }
-            UpdateChecker.VersionAndRepo result = UpdateChecker.find(ga.get(0), ga.get(1), version,
-                branch,
-                repos,
-                message -> getLog().info(message));
+            UpdateChecker.VersionAndRepo result = checker.find(ga.get(0), ga.get(1), version, branch);
             if (result == null) {
                 getLog().info("No update found for: " + ga.get(0) + ":" + ga.get(1) + ":" + version);
             } else {
-                 PomHelper.setPropertyVersion(pom, versions.getProfileId(), name, result.version.toString());
+                getLog().info("Can update ${" + name + "} to " + result.version);
+                PomHelper.setPropertyVersion(pom, versions.getProfileId(), name, result.version.toString());
             }
         }
     }

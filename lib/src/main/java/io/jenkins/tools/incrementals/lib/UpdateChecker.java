@@ -26,7 +26,9 @@ package io.jenkins.tools.incrementals.lib;
 
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -43,7 +45,17 @@ import org.w3c.dom.NodeList;
 /**
  * Looks for updates (incremental or otherwise) to a specific artifact.
  */
-public class UpdateChecker {
+public final class UpdateChecker {
+
+    private final Log log;
+    private final List<String> repos;
+    /** keys are {@code groupId:artifactId:currentVersion:branch} */
+    private final Map<String, VersionAndRepo> cache = new HashMap<>();
+
+    public UpdateChecker(Log log, List<String> repos) {
+        this.log = log;
+        this.repos = repos;
+    }
 
     @FunctionalInterface
     public interface Log {
@@ -82,10 +94,21 @@ public class UpdateChecker {
         }
     }
 
-    public static @CheckForNull VersionAndRepo find(String groupId, String artifactId, String currentVersion, String branch, List<String> repos, Log log) throws Exception {
+    public @CheckForNull VersionAndRepo find(String groupId, String artifactId, String currentVersion, String branch) throws Exception {
+        String cacheKey = groupId + ':' + artifactId + ':' + currentVersion + ':' + branch;
+        if (cache.containsKey(cacheKey)) {
+            log.info("Cache hit on updates to " + groupId + ":" + artifactId + ":" + currentVersion + " within " + branch);
+            return cache.get(cacheKey);
+        }
+        VersionAndRepo result = doFind(groupId, artifactId, currentVersion, branch);
+        cache.put(cacheKey, result);
+        return result;
+    }
+
+    private @CheckForNull VersionAndRepo doFind(String groupId, String artifactId, String currentVersion, String branch) throws Exception {
         ComparableVersion currentV = new ComparableVersion(currentVersion);
         log.info("Searching for updates to " + groupId + ":" + artifactId + ":" + currentV + " within " + branch);
-        SortedSet<VersionAndRepo> candidates = loadVersions(groupId, artifactId, repos);
+        SortedSet<VersionAndRepo> candidates = loadVersions(groupId, artifactId);
         if (candidates.isEmpty()) {
             log.info("Found no candidates");
             return null;
@@ -126,7 +149,7 @@ public class UpdateChecker {
      * @param repos a set of repository URLs to check
      * @return a possibly empty set of versions, sorted descending
      */
-    private static SortedSet<VersionAndRepo> loadVersions(String groupId, String artifactId, List<String> repos) throws Exception {
+    private SortedSet<VersionAndRepo> loadVersions(String groupId, String artifactId) throws Exception {
         // TODO consider using official Aether APIs here (could make use of local cache)
         SortedSet<VersionAndRepo> r = new TreeSet<>();
         for (String repo : repos) {
@@ -224,16 +247,15 @@ public class UpdateChecker {
         if (argv.length != 4) {
             throw new IllegalStateException("Usage: java " + UpdateChecker.class.getName() + " <groupId> <artifactId> <currentVersion> <branch>");
         }
-        VersionAndRepo result = find(argv[0], argv[1], argv[2], argv[3],
-            Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/"),
-            message -> System.err.println(message));
+        VersionAndRepo result = new UpdateChecker(
+                message -> System.err.println(message),
+                Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/")).
+            find(argv[0], argv[1], argv[2], argv[3]);
         if (result != null) {
             System.err.println("Found: " + result);
         } else {
             System.err.println("Nothing found.");
         }
     }
-
-    private UpdateChecker() {}
 
 }
