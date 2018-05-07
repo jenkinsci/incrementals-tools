@@ -42,6 +42,7 @@ import org.codehaus.mojo.versions.AbstractVersionsDependencyUpdaterMojo;
 import org.codehaus.mojo.versions.Property;
 import org.codehaus.mojo.versions.UpdatePropertiesMojo;
 import org.codehaus.mojo.versions.UseLatestReleasesMojo;
+import org.codehaus.mojo.versions.api.ArtifactAssociation;
 import org.codehaus.mojo.versions.api.PomHelper;
 import org.codehaus.mojo.versions.api.PropertyVersions;
 import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
@@ -71,23 +72,21 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
 
     @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException, ArtifactMetadataRetrievalException {
         try {
+            // TODO pick this up from the project’s <repositories>
+            List<String> repos = Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/");
             if (isProcessingDependencyManagement()) {
                 DependencyManagement dependencyManagement = getProject().getDependencyManagement();
                 if (dependencyManagement != null) {
-                    update(pom, dependencyManagement.getDependencies());
+                    update(pom, dependencyManagement.getDependencies(), repos);
                 }
             }
             if (isProcessingDependencies()) {
                 List<Dependency> dependencies = getProject().getDependencies();
                 if (dependencies != null) {
-                    update(pom, dependencies);
+                    update(pom, dependencies, repos);
                 }
             }
-            for (Map.Entry<Property, PropertyVersions> entry : getHelper().getVersionPropertiesMap(getProject(), /* TODO */ new Property[0], /* TODO */ null, null, true).entrySet()) {
-                Property property = entry.getKey();
-                PropertyVersions versions = entry.getValue();
-                // TODO as in UpdatePropertiesMojo
-            }
+            updateProperties(pom, repos);
         } catch (MojoExecutionException | MojoFailureException | XMLStreamException | ArtifactMetadataRetrievalException x) {
             throw x;
         } catch (Exception x) {
@@ -95,8 +94,13 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
         }
     }
 
-    private void update(ModifiedPomXMLEventReader pom, List<Dependency> dependencies) throws Exception {
+    private void update(ModifiedPomXMLEventReader pom, List<Dependency> dependencies, List<String> repos) throws Exception {
         for (Dependency dep : dependencies) {
+            Artifact art = toArtifact(dep);
+            if (!isIncluded(art)) {
+                getLog().debug("Skipping " + toString(dep));
+                continue;
+            }
             if (isExcludeReactor() && isProducedByReactor(dep)) {
                 getLog().info("Skipping reactor dep " + toString(dep));
                 continue;
@@ -110,24 +114,58 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 getLog().info("Skipping nonincremental dep " + toString(dep));
                 continue;
             }
-            Artifact art = toArtifact(dep);
-            if (!isIncluded(art)) {
-                getLog().debug("Skipping " + toString(dep));
-                continue;
-            }
             String groupId = art.getGroupId();
             String artifactId = art.getArtifactId();
             // TODO need to add a caching layer here, as it can be called repeatedly with the same arguments in a reactor build
             UpdateChecker.VersionAndRepo result = UpdateChecker.find(groupId, artifactId, version,
                 branch,
-                // TODO pick this up from the project’s <repositories>
-                Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/"),
+                repos,
                 message -> getLog().info(message));
             if (result == null) {
                 getLog().info("No update found for " + toString(dep));
             } else {
                 getLog().info("Can update " + toString(dep) + " to " + result.version);
                 PomHelper.setDependencyVersion(pom, groupId, artifactId, version, result.version.toString(), getProject().getModel());
+            }
+        }
+    }
+
+    private void updateProperties(ModifiedPomXMLEventReader pom, List<String> repos) throws Exception {
+        PROPERTY: for (Map.Entry<Property, PropertyVersions> entry : getHelper().getVersionPropertiesMap(getProject(), /* TODO */ new Property[0], /* TODO */ null, null, true).entrySet()) {
+            Property property = entry.getKey();
+            String name = property.getName();
+            PropertyVersions versions = entry.getValue();
+            String version = getProject().getProperties().getProperty(name);
+            if (version == null) {
+                continue;
+            }
+            List<String> ga = null; // [groupId, artifactId]
+            for (ArtifactAssociation assn : versions.getAssociations()) {
+                Artifact art = assn.getArtifact();
+                if (!isIncluded(art)) {
+                    getLog().info("Skipping update of ${" + name + "} because it is used in excluded " + art);
+                    continue PROPERTY;
+                }
+                List<String> candidateGA = Arrays.asList(art.getGroupId(), art.getArtifactId());
+                if (ga != null && !ga.equals(candidateGA)) {
+                    // PropertyVersions.getNewestVersion is much fancier but we can anyway only search in one GA.
+                    getLog().info("Skipping update of ${" + name + "} because it is used in both " + ga + " and " + candidateGA);
+                    continue PROPERTY;
+                }
+                ga = candidateGA;
+            }
+            if (ga == null) {
+                getLog().info("No artifacts using ${" + name + "}, skipping");
+                continue;
+            }
+            UpdateChecker.VersionAndRepo result = UpdateChecker.find(ga.get(0), ga.get(1), version,
+                branch,
+                repos,
+                message -> getLog().info(message));
+            if (result == null) {
+                getLog().info("No update found for: " + ga.get(0) + ":" + ga.get(1) + ":" + version);
+            } else {
+                 PomHelper.setPropertyVersion(pom, versions.getProfileId(), name, result.version.toString());
             }
         }
     }

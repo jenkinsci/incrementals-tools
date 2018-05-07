@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <!-- TODO considering inheriting from org.kohsuke:pom:19 to be able to publish to OSSRH -->
     <!-- could then add incrementals-maven-plugin to <pluginManagement> for ease of use -->
-    <!-- -Dincludes=org.jenkins-ci.plugins:*,io.jenkins.plugins.*,org.jenkins-ci.main:* -DgenerateBackupPoms=false -DupdateNonincremental=false -->
+    <!-- -Dincludes=org.jenkins-ci.*,io.jenkins.* -DgenerateBackupPoms=false -DupdateNonincremental=false -->
     <groupId>io.jenkins.tools.incrementals</groupId>
     <artifactId>parent</artifactId>
     <version>1.0-SNAPSHOT</version>
