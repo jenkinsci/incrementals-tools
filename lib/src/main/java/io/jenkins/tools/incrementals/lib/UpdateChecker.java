@@ -227,6 +227,9 @@ public final class UpdateChecker {
             // For example, that branch does not exist in this repository.
             return false;
         }
+        // TODO check behavior when the comparison is huge (too many commits or too large diff)
+        // and perhaps fall back to cloning into a temp dir and pulling all PR refs https://gist.github.com/piscisaureus/3342247
+        // Currently https://developer.github.com/v4/object/commit/ does no better than this.
     }
 
     private static Element theElement(Document doc, String tagName, String url) throws Exception {
