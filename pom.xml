@@ -1,29 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- TODO considering inheriting from org.kohsuke:pom:19 to be able to publish to OSSRH -->
-    <!-- could then add incrementals-maven-plugin to <pluginManagement> for ease of use -->
+    <parent>
+        <groupId>org.kohsuke</groupId>
+        <artifactId>pom</artifactId>
+        <version>19</version>
+        <relativePath />
+    </parent>
+    <!-- TODO add incrementals-maven-plugin to <pluginManagement> for ease of use in -Pconsume-incrementals -->
     <!-- -Dincludes=org.jenkins-ci.*,io.jenkins.* -DgenerateBackupPoms=false -DupdateNonincremental=false -->
     <groupId>io.jenkins.tools.incrementals</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-alpha-1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>Incrementals Tools POM</name>
+    <description>Tools for working with JEP-305 “Incrementals”.</description>
     <licenses>
         <license>
             <name>MIT License</name>
             <url>https://opensource.org/licenses/MIT</url>
         </license>
     </licenses>
+    <scm>
+        <connection>scm:git:git@github.com/jenkinsci/incrementals-tools.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/incrementals-tools.git</developerConnection>
+        <url>https://github.com/jenkinsci/incrementals-tools</url>
+        <tag>HEAD</tag>
+    </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.5.0</maven.version>
     </properties>
     <modules>
         <module>lib</module>
         <module>maven-plugin</module>
     </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <dependencyManagement>
         <dependencies>
             <dependency>
