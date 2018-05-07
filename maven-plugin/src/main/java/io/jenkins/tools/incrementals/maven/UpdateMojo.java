@@ -32,6 +32,7 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException;
+import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -70,10 +71,13 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
     @Parameter(property = "branch", defaultValue = "master")
     private String branch;
 
+    @Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true)
+    private List<MavenArtifactRepository> repos;
+
     @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException, ArtifactMetadataRetrievalException {
         try {
             UpdateChecker checker = new UpdateChecker(message -> getLog().info(message),
-                // TODO pick this up from the project’s <repositories>
+                // TODO use repos.stream().map(MavenArtifactRepository::getUrl).collect(Collectors.toList()) if UpdateChecker.loadVersions is fixed to exclude snapshots and pass authentication
                 Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/"));
             if (isProcessingDependencyManagement()) {
                 DependencyManagement dependencyManagement = getProject().getDependencyManagement();
