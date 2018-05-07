@@ -196,8 +196,13 @@ public class UpdateChecker {
      * @see <a href="https://developer.github.com/v3/repos/commits/#compare-two-commits">Compare two commits</a>
      */
     private static boolean isAncestor(GitHubCommit ghc, String branch) throws Exception {
-        GHCompare.Status status = GitHub.connect().getRepository(ghc.owner + '/' + ghc.repo).getCompare(ghc.hash, branch).status;
-        return status == GHCompare.Status.identical || status == GHCompare.Status.ahead;
+        try {
+            GHCompare.Status status = GitHub.connect().getRepository(ghc.owner + '/' + ghc.repo).getCompare(ghc.hash, branch).status;
+            return status == GHCompare.Status.identical || status == GHCompare.Status.ahead;
+        } catch (FileNotFoundException x) {
+            // For example, that branch does not exist in this repository.
+            return false;
+        }
     }
 
     private static Element theElement(Document doc, String tagName, String url) throws Exception {
