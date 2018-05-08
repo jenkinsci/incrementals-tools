@@ -119,6 +119,25 @@ A single plugin may both consume Incrementals releases, and produce its own.
 Just make both kinds of edits.
 (`.mvn/maven.config` may have multiple lines.)
 
+### Updating dependencies
+
+Once you have some dependencies on incremental versions in your POM, you can
+
+```bash
+mvn incrementals:update
+```
+
+to get a newer version of some dependencies, if merged; or
+
+```bash
+mvn incrementals:update -Dbranch=yourghacct:experiments-JENKINS-12345
+```
+
+to get the most recent versions from some set of unmerged PRs.
+Then commit and push the resulting `pom.xml` edits.
+
+You will need GitHub credentials for this: [instructions](http://github-api.kohsuke.org/)
+
 ### Running Maven releases
 
 You may still use the Maven release plugin (MRP) when `might-produce-incrementals` is activated:
@@ -132,13 +151,8 @@ The released artifacts should have sensible metadata.
 However, after performing a traditional release, to resume being able to produce incrementals you must run:
 
 ```bash
-mvn help:evaluate -Dexpression=project.version -Doutput=version && \
-mvn versions:set -Ddollar='$' -DnewVersion='${dollar}{revision}${dollar}{changelist}' -DgenerateBackupPoms=false && \
-mvn versions:set-property -Dproperty=revision -DnewVersion=`sed -e 's/-SNAPSHOT$//' < version` -DgenerateBackupPoms=false && \
-rm version
+mvn incrementals:reincrementalify
 ```
-
-<!--- TODO JENKINS-50693 publish this as a packaged script somewhere --->
 
 and commit and push the resulting `pom.xml` edits.
 
