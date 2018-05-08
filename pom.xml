@@ -7,8 +7,6 @@
         <version>19</version>
         <relativePath />
     </parent>
-    <!-- TODO add incrementals-maven-plugin to <pluginManagement> for ease of use in -Pconsume-incrementals -->
-    <!-- -Dincludes=org.jenkins-ci.*,io.jenkins.* -DgenerateBackupPoms=false -DupdateNonincremental=false -->
     <groupId>io.jenkins.tools.incrementals</groupId>
     <artifactId>parent</artifactId>
     <version>1.0-alpha-2-SNAPSHOT</version>
