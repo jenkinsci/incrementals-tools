@@ -116,7 +116,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 continue;
             }
             if (!updateNonincremental && !version.matches(".+-rc[0-9]+[.][0-9a-f]{12}")) {
-                getLog().info("Skipping nonincremental dep " + toString(dep));
+                getLog().debug("Skipping nonincremental dep " + toString(dep));
                 continue;
             }
             String groupId = art.getGroupId();
