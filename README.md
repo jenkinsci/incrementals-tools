@@ -75,7 +75,7 @@ echo -Pmight-produce-incrementals >> .mvn/maven.config
 echo .flattened-pom.xml >> .gitignore
 ```
 
-Finally, configure [git-changelist-maven-extension](https://github.com/jenkinsci/git-changelist-maven-extension) in `.mvn/extensions.xml`:
+Finally, configure `git-changelist-maven-extension` in `.mvn/extensions.xml`:
 
 ```xml
 <extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/EXTENSIONS/1.0.0 http://maven.apache.org/xsd/core-extensions-1.0.0.xsd">
