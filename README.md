@@ -7,7 +7,39 @@ See [JEP-305](https://github.com/jenkinsci/jep/blob/master/jep/305/README.adoc) 
 Since most Jenkins repositories host plugins, this use case will be documented first.
 You must be using parent POM version [3.9](https://github.com/jenkinsci/plugin-pom/blob/840ac3020a0a243dd243ed7156a22dae1e3c35fe/CHANGELOG.md#39) or later.
 
-### Enabling consumption of incrementals
+### Enabling incrementals (the easy way)
+
+Just run
+
+```bash
+mvn io.jenkins.tools.incrementals:incrementals-maven-plugin:incrementalify -DgenerateBackupPoms=false
+```
+
+or if your POM is already new enough (3.10+)
+
+```bash
+mvn incrementals:incrementalify
+```
+
+Check the usual build
+
+```bash
+mvn clean package
+```
+
+and if all is well,
+
+```bash
+git add .mvn pom.xml
+git checkout -b incrementals
+git commit -m Incrementalified.
+```
+
+and file as a pull request.
+
+### Enabling incrementals (the hard way)
+
+#### Enabling consumption of incrementals
 
 If your plugin has (or may have) dependencies on incremental versions, run:
 
@@ -21,7 +53,7 @@ git add .mvn
 
 This profile merely activates access to the [Incrementals repository](https://repo.jenkins-ci.org/incrementals/).
 
-### Enabling production of incrementals
+#### Enabling production of incrementals
 
 To produce incremental artifacts _from_ your plugin, first edit your `pom.xml`.
 If your plugin declares
@@ -95,7 +127,17 @@ git add .mvn .gitignore pom.xml
 
 and commit and push your edits.
 
-If this becomes the head of a pull request built on ci.jenkins.io,
+#### Production _and_ consumption
+
+A single plugin may both consume Incrementals releases, and produce its own.
+Just make both kinds of edits.
+(`.mvn/maven.config` may have multiple lines.)
+
+### Producing incrementals
+
+Assumes you have set up the `might-produce-incrementals` as above, either by hand or using the `incrementalify` goal.
+
+If you file a pull request built on ci.jenkins.io,
 and the pull request is up to date with its target branch,
 and the build is stable,
 the artifact will be automatically deployed to the Incrementals repository.
@@ -111,12 +153,6 @@ mvn -Dset.changelist -DskipTests clean install
 
 If you do not select the `-Dset.changelist` option, you will create a regular `*-SNAPSHOT` artifact.
 (And that is what you _must_ do if you have any local modifications or untracked files.)
-
-### Production _and_ consumption
-
-A single plugin may both consume Incrementals releases, and produce its own.
-Just make both kinds of edits.
-(`.mvn/maven.config` may have multiple lines.)
 
 ### Updating dependencies
 
