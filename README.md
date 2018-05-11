@@ -5,7 +5,7 @@ See [JEP-305](https://github.com/jenkinsci/jep/blob/master/jep/305/README.adoc) 
 ## Usage in plugin POMs
 
 Since most Jenkins repositories host plugins, this use case will be documented first.
-You must be using parent POM version [3.10](https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md) or later.
+You must be using parent POM version [3.10](https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md#310) or later.
 
 ### Enabling incrementals (the easy way)
 
