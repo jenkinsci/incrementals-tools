@@ -5,7 +5,7 @@ See [JEP-305](https://github.com/jenkinsci/jep/blob/master/jep/305/README.adoc) 
 ## Usage in plugin POMs
 
 Since most Jenkins repositories host plugins, this use case will be documented first.
-You must be using parent POM version [3.9](https://github.com/jenkinsci/plugin-pom/blob/840ac3020a0a243dd243ed7156a22dae1e3c35fe/CHANGELOG.md#39) or later.
+You must be using parent POM version [3.10](https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md) or later.
 
 ### Enabling incrementals (the easy way)
 
@@ -104,7 +104,6 @@ Now run
 ```bash
 mkdir -p .mvn
 echo -Pmight-produce-incrementals >> .mvn/maven.config
-echo .flattened-pom.xml >> .gitignore
 ```
 
 Finally, configure `git-changelist-maven-extension` in `.mvn/extensions.xml`:
@@ -122,7 +121,7 @@ Finally, configure `git-changelist-maven-extension` in `.mvn/extensions.xml`:
 You may now
 
 ```bash
-git add .mvn .gitignore pom.xml
+git add .mvn pom.xml
 ```
 
 and commit and push your edits.
