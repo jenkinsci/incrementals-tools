@@ -58,7 +58,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 @Mojo(name = "incrementalify", requiresDirectInvocation = true, aggregator = true)
 public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
 
-    private static final String MINIMUM_PARENT = "3.9"; // TODO 3.10 after https://github.com/jenkinsci/plugin-pom/pull/105
+    private static final String MINIMUM_PARENT = "3.10";
 
     @Component
     private BuildPluginManager pluginManager;
