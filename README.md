@@ -140,9 +140,9 @@ If you file a pull request built on ci.jenkins.io,
 and the pull request is up to date with its target branch,
 and the build is stable,
 the artifact will be automatically deployed to the Incrementals repository.
-Pending [INFRA-1598](https://issues.jenkins-ci.org/browse/INFRA-1598),
-you may need to add a `github` field to your plugin’s entry
-in [`repository-permissions-updater`](https://github.com/jenkins-infra/repository-permissions-updater).
+Your plugin will need to have a `github` field in
+[`repository-permissions-updater`](https://github.com/jenkins-infra/repository-permissions-updater)
+if it does not already.
 
 To produce equivalent artifacts in your local repository while working offline:
 
