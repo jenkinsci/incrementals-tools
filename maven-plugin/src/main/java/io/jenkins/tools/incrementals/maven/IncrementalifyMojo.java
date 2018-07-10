@@ -139,8 +139,8 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
                     pom.mark(1);
                     found = true;
                     String orig = pom.getBetween(0, 1);
-                    // TODO sniff existing indentation
-                    pom.replaceBetween(0, 1, "\n        <" + name + ">" + value + "</" + name + ">" + orig);
+                    DetectIndent.Indent indent = new DetectIndent().detect(orig);
+                    pom.replaceBetween(0, 1, "\n" + indent.getIndent() + "<" + name + ">" + value + "</" + name + ">" + orig);
                     pom.clearMark(0);
                     pom.clearMark(1);
                 }
