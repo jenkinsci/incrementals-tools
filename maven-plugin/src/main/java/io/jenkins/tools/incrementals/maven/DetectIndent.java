@@ -5,8 +5,7 @@ import org.apache.commons.lang.StringUtils;
 public class DetectIndent {
 
   public Indent detect(String input) {
-    if (StringUtils.isEmpty(input)) return new Indent();
-    else {
+    if (StringUtils.isNotEmpty(input)) {
       int size = 0;
       char indent = ' ';
       String[] inputs = input.split("(\r\n|\r|\n)");
