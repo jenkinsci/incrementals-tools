@@ -190,6 +190,14 @@ mvn incrementals:reincrementalify
 
 and commit and push the resulting `pom.xml` edits.
 
+to avoid calling `mvn incrementals:reincrementalify` you can add `completionGoals` to your `properties` in `pom.xml`
+
+```xml
+  <properties>
+    <completionGoals>incrementals:reincrementalify</completionGoals>
+  </properties>
+```
+
 ## Usage in other POMs
 
 From repositories with POMs not inheriting from `org.jenkins-ci.plugins:plugin` you can follow similar steps to use Incrementals.
