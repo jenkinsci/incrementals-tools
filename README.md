@@ -182,13 +182,39 @@ mvn -B release:{prepare,perform}
 
 The released artifacts should have sensible metadata.
 (You may notice that they deploy a “flattened” POM file, but this should not break anything.)
-However, after performing a traditional release, to resume being able to produce incrementals you must run:
+
+Sufficiently recent parent POMs (3.18+) also include a `incrementals:reincrementalify` mojo
+run as part of [completion goals](https://maven.apache.org/maven-release/maven-release-plugin/prepare-mojo.html#completionGoals),
+so you will notice that the `[maven-release-plugin] prepare for next development iteration` commit
+brings your source tree back to a state where the plugin is ready to produce Incrementals.
+To verify that this is working, after running a release try running
+
+```bash
+git diff HEAD^^
+```
+
+You should see something like
+
+```diff
+--- a/pom.xml
++++ b/pom.xml
+   <version>${revision}${changelist}</version>
+   <properties>
+-    <revision>1.1</revision>
++    <revision>1.2</revision>
+     <changelist>-SNAPSHOT</changelist>
+   </properties>
+```
+
+indicating that the net effect of the `[maven-release-plugin] prepare release something-1.1` commit and the commit after it
+is to change the plugin from `1.1-SNAPSHOT` to `1.2-SNAPSHOT`.
+If this failed and your `<version>` was still a number, you can manually run
 
 ```bash
 mvn incrementals:reincrementalify
 ```
 
-and commit and push the resulting `pom.xml` edits.
+to fix it up.
 
 ## Usage in other POMs
 
