@@ -24,6 +24,7 @@
 
 package io.jenkins.tools.incrementals.maven;
 
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.execution.MavenSession;
@@ -54,11 +55,20 @@ public class ReincrementalifyMojo extends AbstractMojo {
 
     @Override public void execute() throws MojoExecutionException, MojoFailureException {
         String version = project.getVersion();
+        Properties properties = project.getProperties();
+        String noop = "NOOP";
+        String revision = properties.getProperty("revision", noop);
+        String changelist = properties.getProperty("changelist", noop);
+        if (noop.equals(revision) || noop.equals(changelist)) {
+            throw new MojoExecutionException(this,
+                "Cannot use reincrementalify before incrementals is enabled",
+                "Please use 'incrementals:incrementalify' to enable incrementals");
+        }
         Matcher m = Pattern.compile("(.+)-SNAPSHOT").matcher(version);
         if (!m.matches()) {
             throw new MojoFailureException("Unexpected version: " + version);
         }
-        project.getProperties().setProperty("dollar", "$");
+        properties.setProperty("dollar", "$");
         executeMojo(plugin("org.codehaus.mojo", "versions-maven-plugin", "2.5"), "set",
             configuration(
                 element("newVersion", "${dollar}{revision}${dollar}{changelist}"),
