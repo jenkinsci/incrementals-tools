@@ -33,6 +33,7 @@
         <module>lib</module>
         <module>maven-plugin</module>
         <module>git-changelist-maven-extension</module>
+        <module>enforcer-rules</module>
     </modules>
     <build>
         <plugins>

@@ -54,7 +54,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 /**
  * Sets a {@code changelist} property to a value based on the Git checkout.
  * {@code -Dset.changelist} then becomes equivalent to:
- * {@code -Dchangelist=-rc$(git rev-list --first-parent --count HEAD).$(git rev-parse --short=12 HEAD)}
+ * {@code -Dchangelist=-rc$(git rev-list --count HEAD).$(git rev-parse --short=12 HEAD)}
  * <p>Also does the equivalent of: {@code -DscmTag=$(git rev-parse HEAD)}
  * @see <a href="https://maven.apache.org/maven-ci-friendly.html">Maven CI Friendly Versions</a>
  * @see <a href="https://maven.apache.org/docs/3.3.1/release-notes.html#Core_Extensions">Core Extensions</a>
@@ -148,15 +148,13 @@ public class Main extends AbstractMavenLifecycleParticipant {
 
     private static int revCount(RevWalk walk, RevCommit c) throws IOException, GitAPIException {
         int count = 0;
-        // https://stackoverflow.com/a/33054511/12916 RevWalk does not seem to provide any easy equivalent to --first-parent, so cannot simply walk.markStart(c) and iterate
-        while (true) {
-            count++;
-            if (c.getParentCount() == 0) {
-                return count;
-            } else {
-                c = walk.parseCommit(c.getParent(0));
+        try (RevWalk walk2 = new RevWalk(walk.getObjectReader())) {
+            walk2.markStart(walk2.parseCommit(c));
+            for (RevCommit c2 : walk2) {
+                count++;
             }
         }
+        return count;
     }
 
     @Override
