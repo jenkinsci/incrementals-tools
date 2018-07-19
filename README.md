@@ -252,3 +252,17 @@ and then add to command lines consuming or producing incremental versions:
 ```
 
 or define an equivalent profile in local settings.
+
+## Changelog
+
+### 1.0-beta-4
+
+2018 Jul 19
+
+* [JENKINS-51869](https://issues.jenkins-ci.org/browse/JENKINS-51869): no longer using `--first-parent` in revision count.
+* Match indentation in `mvn incrementals:incrementalify`.
+* Make `mvn incrementals:reincrementalify` fail comprehensibly on a non-incrementalified repository.
+
+### 1.0-beta-3 and earlier
+
+Not recorded.
