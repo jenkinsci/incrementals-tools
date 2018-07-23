@@ -28,11 +28,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
+
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
@@ -58,7 +61,11 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 @Mojo(name = "incrementalify", requiresDirectInvocation = true, aggregator = true)
 public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
 
-    private static final String MINIMUM_PARENT = "3.10";
+    private static final String MINIMUM_JENKINS_PARENT = "1.47";
+    private static final String MINIMUM_PLUGIN_PARENT = "3.10";
+    public static final String JENKINS_POM = "org.jenkins-ci:jenkins:pom";
+    public static final String PLUGIN_POM = "org.jenkins-ci.plugins:plugin:pom";
+    private static final Set<String> PARENT_DEPENDENCIES = ImmutableSet.of(JENKINS_POM, PLUGIN_POM);
 
     @Component
     private BuildPluginManager pluginManager;
@@ -112,11 +119,17 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         if (parent == null) {
             throw new MojoFailureException("No <parent> found");
         }
-        if (!parent.getDependencyConflictId().equals("org.jenkins-ci.plugins:plugin:pom")) {
+        if (!PARENT_DEPENDENCIES.contains(parent.getDependencyConflictId())) {
             throw new MojoFailureException("Unexpected <parent> " + parent);
         }
-        if (new ComparableVersion(parent.getVersion()).compareTo(new ComparableVersion(MINIMUM_PARENT)) < 0) {
-            PomHelper.setProjectParentVersion(pom, MINIMUM_PARENT);
+        String minimum_parent;
+        if (parent.getDependencyConflictId().equals(JENKINS_POM)) {
+            minimum_parent = MINIMUM_JENKINS_PARENT;
+        } else {
+            minimum_parent = MINIMUM_PLUGIN_PARENT;
+        }
+        if (new ComparableVersion(parent.getVersion()).compareTo(new ComparableVersion(minimum_parent)) < 0) {
+            PomHelper.setProjectParentVersion(pom, minimum_parent);
         }
         prependProperty(pom, "changelist", "-SNAPSHOT");
         prependProperty(pom, "revision", m.group(1));
