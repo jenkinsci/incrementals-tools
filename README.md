@@ -255,6 +255,12 @@ or define an equivalent profile in local settings.
 
 ## Changelog
 
+### 1.0-beta-5
+
+2018 Jul 24
+
+* Support `mvn incrementals:incrementalify` on projects using the `org.jenkins-ci:jenkins` parent.
+
 ### 1.0-beta-4
 
 2018 Jul 19
