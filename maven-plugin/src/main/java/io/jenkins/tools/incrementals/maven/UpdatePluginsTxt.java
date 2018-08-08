@@ -165,10 +165,10 @@ public class UpdatePluginsTxt extends AbstractMojo implements DependencyManageme
             }
 
             if (result == null) {
-                getLog().info("No update found for " + dep);
+                getLog().info("No update found for " + dep + ". Current version is " + version);
             } else {
                 getLog().info("Can update dependency " + dep + " to " + result.version);
-                dep.setVersion(result.version.getCanonical());
+                dep.setVersion(result.version.toString());
             }
         }
     }
