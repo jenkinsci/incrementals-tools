@@ -289,6 +289,12 @@ or define an equivalent profile in local settings.
 
 ## Changelog
 
+### 1.0-beta-6
+
+2018 Aug 30
+
+* New `mvn incrementals:updatePluginsTxt` goal.
+
 ### 1.0-beta-5
 
 2018 Jul 24
