@@ -172,6 +172,40 @@ Then commit and push the resulting `pom.xml` edits.
 
 You will need GitHub credentials for this: [instructions](http://github-api.kohsuke.org/)
 
+### Updating versions for Jenkins Docker images
+
+Official Jenkins Docker images offer `plugins.txt` which supports Incrementals.
+See [this page](https://github.com/jenkinsci/docker#preinstalling-plugins) for more information.
+Incrementals maven plugin can be used to update plugin versions there.
+Currently, only Incrementals version update is supported.
+
+```bash
+mvn incrementals:updatePluginsTxt -DpluginsFile=plugins.txt
+```
+
+When plugins.txt format is used, it is also possible to pass the branch name to the incrementals definition
+so that the Incrementals version is updated from a particular branch.
+
+Example of the file with incrementals:
+
+```
+scm-api:latest
+script-security:latest
+workflow-aggregator:2.5
+# https://github.com/jenkinsci/workflow-api-plugin/pull/17
+workflow-api:incrementals;org.jenkins-ci.plugins.workflow;2.30-rc-802-fa-5-alpha-94-c-8-alpha-65;jglick;logs-JENKINS-38381
+workflow-basic-steps:latest
+# https://github.com/jenkinsci/workflow-durable-task-step-plugin/pull/21
+workflow-durable-task-step:incrementals;org.jenkins-ci.plugins.workflow;jglick;2.20-rc333.74dc7c303e6d
+# https://github.com/jenkinsci/workflow-job-plugin/pull/27
+workflow-job:incrementals;org.jenkins-ci.plugins.workflow;2.25-rc-824.49-c-91-cd-14666;jglick;logs-JENKINS-38381
+workflow-multibranch:latest
+# https://github.com/jenkinsci/workflow-support-plugin/pull/15
+workflow-support:incrementals;org.jenkins-ci.plugins.workflow;2.21-rc-617.27-alpha-34-dc-2-c-64-c;jglick;logs-JENKINS-38381
+# Incrementals from the master branch
+artifact-manager-s3:incrementals;io.jenkins.plugins;1.2-rc82.a1e113b09b19
+```
+
 ### Running Maven releases
 
 You may still use the Maven release plugin (MRP) when `might-produce-incrementals` is activated:

@@ -25,6 +25,7 @@
 package io.jenkins.tools.incrementals.lib;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +52,8 @@ public final class UpdateChecker {
     private final List<String> repos;
     /** keys are {@code groupId:artifactId:currentVersion:branch} */
     private final Map<String, VersionAndRepo> cache = new HashMap<>();
+
+    private final Map<String, String> groupIdCache = new HashMap<>();
 
     public UpdateChecker(Log log, List<String> repos) {
         this.log = log;
@@ -92,6 +95,18 @@ public final class UpdateChecker {
         @Override public String toString() {
             return baseURL();
         }
+    }
+
+    public @CheckForNull String findGroupId(String artifactId) throws IOException, InterruptedException {
+        String cacheKey = artifactId;
+        if (groupIdCache.containsKey(cacheKey)) {
+            log.info("Group ID Cache hit on artifact ID: " + artifactId);
+            return groupIdCache.get(cacheKey);
+        }
+
+        //TODO: implement to support non-Incremental formats
+        // Needs to load UC JSON and query it like https://github.com/jenkinsci/docker/pull/668
+        return null;
     }
 
     public @CheckForNull VersionAndRepo find(String groupId, String artifactId, String currentVersion, String branch) throws Exception {
