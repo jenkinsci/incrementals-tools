@@ -115,7 +115,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 getLog().info("Skipping snapshot dep " + toString(dep));
                 continue;
             }
-            if (!updateNonincremental && !version.matches(".+-rc[0-9]+[.][0-9a-f]{12}")) {
+            if (!updateNonincremental && !isIncremental(version)) {
                 getLog().debug("Skipping nonincremental dep " + toString(dep));
                 continue;
             }
@@ -139,6 +139,10 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
             PropertyVersions versions = entry.getValue();
             String version = getProject().getProperties().getProperty(name);
             if (version == null) {
+                continue;
+            }
+            if (!updateNonincremental && !isIncremental(version)) {
+                getLog().debug("Skipping nonincremental ${" + name + "}=" + version);
                 continue;
             }
             List<String> ga = null; // [groupId, artifactId]
@@ -168,6 +172,10 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 PomHelper.setPropertyVersion(pom, versions.getProfileId(), name, result.version.toString());
             }
         }
+    }
+
+    private static boolean isIncremental(String version) {
+        return version.matches(".+-rc[0-9]+[.][0-9a-f]{12}");
     }
 
 }
