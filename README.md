@@ -289,6 +289,12 @@ or define an equivalent profile in local settings.
 
 ## Changelog
 
+### 1.0-beta-7
+
+2018 Sep 04
+
+* `mvn incrementals:update` mishandled property expressions.
+
 ### 1.0-beta-6
 
 2018 Aug 30
