@@ -113,7 +113,7 @@ Finally, configure `git-changelist-maven-extension` in `.mvn/extensions.xml`:
   <extension>
     <groupId>io.jenkins.tools.incrementals</groupId>
     <artifactId>git-changelist-maven-extension</artifactId>
-    <version>1.0-beta-2</version>
+    <version>1.0-beta-7</version>
   </extension>
 </extensions>
 ```
