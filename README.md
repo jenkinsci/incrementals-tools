@@ -106,14 +106,14 @@ mkdir -p .mvn
 echo -Pmight-produce-incrementals >> .mvn/maven.config
 ```
 
-Finally, configure `git-changelist-maven-extension` in `.mvn/extensions.xml`:
+Finally, configure `git-changelist-maven-extension` in `.mvn/extensions.xml`. (Update the version to the latest version for this tool.):
 
 ```xml
 <extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/EXTENSIONS/1.0.0 http://maven.apache.org/xsd/core-extensions-1.0.0.xsd">
   <extension>
     <groupId>io.jenkins.tools.incrementals</groupId>
     <artifactId>git-changelist-maven-extension</artifactId>
-    <version>1.0-beta-2</version>
+    <version>1.0-beta-3</version>
   </extension>
 </extensions>
 ```
