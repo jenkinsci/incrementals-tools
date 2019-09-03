@@ -259,6 +259,21 @@ as well as the `incrementals.url` and `scmTag` properties,
 into your parent POM or directly into your repository POM.
 Some adjustment of `maven-enforcer-plugin` configuration may also be necessary.
 
+### Publishing
+
+Once Incrementals is enabled in a plugin repository,
+the stock `buildPlugin` method takes care of publishing artifacts from stable builds up to date with the base branch.
+For libraries or other components with custom `Jenkinsfile`s, you will need to set this up manually:
+
+```groovy
+node('maven') {
+  checkout scm
+  sh 'mvn -Dset.changelist install'
+  infra.prepareToPublishIncrementals()
+}
+infra.maybePublishIncrementals()
+```
+
 ## Offline testing
 
 If you wish to test usage offline, run
