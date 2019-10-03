@@ -130,7 +130,7 @@ public class Main extends AbstractMavenLifecycleParticipant {
                     throw new MavenExecutionException("Git operations failed", x);
                 }
                 log.debug("Spent " + (System.nanoTime() - start) / 1000 / 1000 + "ms on calculations");
-                String value = "-rc" + count + "." + hash;
+                String value = String.format(props.getProperty("changelist.format", "-rc%d.%s"), count, hash);
                 log.info("Setting: -Dchangelist=" + value + " -DscmTag=" + fullHash);
                 props.setProperty("changelist", value);
                 props.setProperty("scmTag", fullHash);
