@@ -254,7 +254,8 @@ to fix it up.
 
 If you want to use Incrementals _instead_ of MRP,
 you can configure your project as follows.
-Note that pending [JEP-221](https://jenkins.io/jep/221) there is no automatic publishing of such artifacts.
+Note that pending [JEP-221](https://jenkins.io/jep/221) or similar,
+there is no automatic publishing of such artifacts.
 
 For a regular component whose version number is not intrinsically meaningful:
 
