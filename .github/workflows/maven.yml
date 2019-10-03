@@ -13,4 +13,6 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven
-      run: mvn --batch --show-version package
+      run: mvn -B -V -ntp -Dstyle.color=always package
+      env:
+        MAVEN_OPTS: -Djansi.force=true
