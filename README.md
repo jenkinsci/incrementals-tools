@@ -250,6 +250,117 @@ mvn incrementals:reincrementalify
 
 to fix it up.
 
+### Superseding Maven releases
+
+If you want to use Incrementals _instead_ of MRP,
+you can configure your project as follows.
+Note that pending [JEP-221](https://jenkins.io/jep/221) there is no automatic publishing of such artifacts.
+
+For a regular component whose version number is not intrinsically meaningful:
+
+```diff
+--- a/.mvn/extensions.xml
++++ b/.mvn/extensions.xml
+@@ -2,6 +2,6 @@
+   <extension>
+     <groupId>io.jenkins.tools.incrementals</groupId>
+     <artifactId>git-changelist-maven-extension</artifactId>
+-    <version>1.0-beta-7</version>
++    <version>1.1</version>
+   </extension>
+ </extensions>
+--- a/.mvn/maven.config
++++ b/.mvn/maven.config
+@@ -1,2 +1,3 @@
+ -Pconsume-incrementals
+ -Pmight-produce-incrementals
++-Dchangelist.format=%d.%s
+--- a/pom.xml
++++ b/pom.xml
+@@ -7,7 +7,7 @@
+-    <version>${revision}${changelist}</version>
++    <version>${changelist}</version>
+     <packaging>hpi</packaging>
+@@ -26,8 +26,7 @@
+     <properties>
+-        <revision>1.23</revision>
+-        <changelist>-SNAPSHOT</changelist>
++        <changelist>999999-SNAPSHOT</changelist>
+         <jenkins.version>2.176.4</jenkins.version>
+         <java.level>8</java.level>
+     </properties>
+```
+
+Here a CI/release build (`-Dset.changelist` specified) will be of the form `123.abcdef456789`.
+A snapshot build will be `999999-SNAPSHOT`: arbitrary but treated as a snapshot by Maven and newer than any release.
+
+For a component whose version number ought to reflect a release version of some wrapped component:
+
+```diff
+--- a/.mvn/extensions.xml
++++ b/.mvn/extensions.xml
+@@ -2,6 +2,6 @@
+   <extension>
+     <groupId>io.jenkins.tools.incrementals</groupId>
+     <artifactId>git-changelist-maven-extension</artifactId>
+-    <version>1.0-beta-7</version>
++    <version>1.1</version>
+   </extension>
+ </extensions>
+--- a/.mvn/maven.config
++++ b/.mvn/maven.config
+@@ -1,2 +1,3 @@
+ -Pconsume-incrementals
+ -Pmight-produce-incrementals
++-Dchangelist.format=%d.%s
+--- a/pom.xml
++++ b/pom.xml
+@@ -10,12 +10,12 @@
+   <artifactId>some-library-wrapper</artifactId>
+-  <version>${revision}${changelist}</version>
++  <version>${revision}-${changelist}</version>
+   <packaging>hpi</packaging>
+   <properties>
+-    <revision>4.0.0-1.3</revision>
+-    <changelist>-SNAPSHOT</changelist>
++    <revision>4.0.0</revision>
++    <changelist>999999-SNAPSHOT</changelist>
+     <jenkins.version>2.176.4</jenkins.version>
+     <java.level>8</java.level>
+     <some-library.version>4.0.0</some-library.version>
+```
+
+Here the version numbers will look like `4.0.0-123.abcdef456789` or `4.0.0-999999-SNAPSHOT`, respectively.
+When you pick up a new third-party component like `4.0.1`, your version numbers will match.
+To ensure that the two copies of that third-party version stay in synch, you can add:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-enforcer-plugin</artifactId>
+      <executions>
+        <execution>
+          <id>enforce-property</id>
+          <goals>
+            <goal>enforce</goal>
+          </goals>
+          <configuration>
+            <rules>
+              <requireProperty>
+                <property>revision</property>
+                <regex>\Q${some-library.version}\E</regex>
+                <regexMessage>revision (${revision}) must equal some-library.version (${some-library.version})</regexMessage>
+              </requireProperty>
+            </rules>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
 ## Usage in other POMs
 
 From repositories with POMs not inheriting from `org.jenkins-ci.plugins:plugin` you can follow similar steps to use Incrementals.
