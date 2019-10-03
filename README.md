@@ -253,7 +253,7 @@ to fix it up.
 ### Superseding Maven releases
 
 If you want to use Incrementals _instead_ of MRP,
-you can configure your project as follows.
+you can override `changelist.format` in your project (the default value is `-rc%d.%s`).
 Note that pending [JEP-221](https://jenkins.io/jep/221) or similar,
 there is no automatic publishing of such artifacts.
 
