@@ -360,6 +360,22 @@ To ensure that the two copies of that third-party version stay in synch, you can
 </build>
 ```
 
+Since inadvertently running MRP on such a project would result in a mess,
+it is best to explicitly prevent that:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-release-plugin</artifactId>
+      <configuration>
+        <preparationGoals>not-set-up-for-MRP</preparationGoals>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
+```
+
 Pending [JEP-221](https://jenkins.io/jep/221) or similar,
 there is no automatic publishing of such artifacts.
 However, you can release manually if you have
