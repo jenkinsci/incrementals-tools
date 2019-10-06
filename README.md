@@ -369,7 +369,7 @@ To cut a release:
 ```bash
 git checkout master
 git pull --ff-only
-mvn -Dset.changelist clean deploy
+mvn -Dset.changelist -DaltDeploymentRepository=maven.jenkins-ci.org::default::https://repo.jenkins-ci.org/releases/ clean deploy
 ```
 
 ## Usage in other POMs
@@ -404,6 +404,7 @@ If you wish to test usage offline, run
 docker run --rm --name nexus -p 8081:8081 -v nexus-data:/nexus-data sonatype/nexus3
 ```
 
+Log in to http://localhost:8081/ and pick an admin password as per instructions, then
 add to your `~/.m2/settings.xml`:
 
 ```xml
