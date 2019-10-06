@@ -254,8 +254,6 @@ to fix it up.
 
 If you want to use Incrementals _instead_ of MRP,
 you can override `changelist.format` in your project (the default value is `-rc%d.%s`).
-Note that pending [JEP-221](https://jenkins.io/jep/221) or similar,
-there is no automatic publishing of such artifacts.
 
 For a regular component whose version number is not intrinsically meaningful:
 
@@ -360,6 +358,18 @@ To ensure that the two copies of that third-party version stay in synch, you can
     </plugin>
   </plugins>
 </build>
+```
+
+Pending [JEP-221](https://jenkins.io/jep/221) or similar,
+there is no automatic publishing of such artifacts.
+However, you can release manually if you have
+[personal deployment credentials](https://github.com/jenkins-infra/repository-permissions-updater).
+To cut a release:
+
+```bash
+git checkout master
+git pull --ff-only
+mvn -Dset.changelist clean deploy
 ```
 
 ## Usage in other POMs
