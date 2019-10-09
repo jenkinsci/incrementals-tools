@@ -113,7 +113,7 @@ Finally, configure `git-changelist-maven-extension` in `.mvn/extensions.xml`. (U
   <extension>
     <groupId>io.jenkins.tools.incrementals</groupId>
     <artifactId>git-changelist-maven-extension</artifactId>
-    <version>1.0-beta-3</version>
+    <version>1.0-beta-7</version>
   </extension>
 </extensions>
 ```
@@ -250,6 +250,144 @@ mvn incrementals:reincrementalify
 
 to fix it up.
 
+### Superseding Maven releases
+
+If you want to use Incrementals _instead_ of MRP,
+you can override `changelist.format` in your project (the default value is `-rc%d.%s`).
+
+For a regular component whose version number is not intrinsically meaningful:
+
+```diff
+--- a/.mvn/extensions.xml
++++ b/.mvn/extensions.xml
+@@ -2,6 +2,6 @@
+   <extension>
+     <groupId>io.jenkins.tools.incrementals</groupId>
+     <artifactId>git-changelist-maven-extension</artifactId>
+-    <version>1.0-beta-7</version>
++    <version>1.1</version>
+   </extension>
+ </extensions>
+--- a/.mvn/maven.config
++++ b/.mvn/maven.config
+@@ -1,2 +1,3 @@
+ -Pconsume-incrementals
+ -Pmight-produce-incrementals
++-Dchangelist.format=%d.%s
+--- a/pom.xml
++++ b/pom.xml
+@@ -7,7 +7,7 @@
+-    <version>${revision}${changelist}</version>
++    <version>${changelist}</version>
+     <packaging>hpi</packaging>
+@@ -26,8 +26,7 @@
+     <properties>
+-        <revision>1.23</revision>
+-        <changelist>-SNAPSHOT</changelist>
++        <changelist>999999-SNAPSHOT</changelist>
+         <jenkins.version>2.176.4</jenkins.version>
+         <java.level>8</java.level>
+     </properties>
+```
+
+Here a CI/release build (`-Dset.changelist` specified) will be of the form `123.abcdef456789`.
+A snapshot build will be `999999-SNAPSHOT`: arbitrary but treated as a snapshot by Maven and newer than any release.
+
+For a component whose version number ought to reflect a release version of some wrapped component:
+
+```diff
+--- a/.mvn/extensions.xml
++++ b/.mvn/extensions.xml
+@@ -2,6 +2,6 @@
+   <extension>
+     <groupId>io.jenkins.tools.incrementals</groupId>
+     <artifactId>git-changelist-maven-extension</artifactId>
+-    <version>1.0-beta-7</version>
++    <version>1.1</version>
+   </extension>
+ </extensions>
+--- a/.mvn/maven.config
++++ b/.mvn/maven.config
+@@ -1,2 +1,3 @@
+ -Pconsume-incrementals
+ -Pmight-produce-incrementals
++-Dchangelist.format=%d.%s
+--- a/pom.xml
++++ b/pom.xml
+@@ -10,12 +10,12 @@
+   <artifactId>some-library-wrapper</artifactId>
+-  <version>${revision}${changelist}</version>
++  <version>${revision}-${changelist}</version>
+   <packaging>hpi</packaging>
+   <properties>
+-    <revision>4.0.0-1.3</revision>
+-    <changelist>-SNAPSHOT</changelist>
++    <revision>4.0.0</revision>
++    <changelist>999999-SNAPSHOT</changelist>
+     <jenkins.version>2.176.4</jenkins.version>
+     <java.level>8</java.level>
+     <some-library.version>4.0.0</some-library.version>
+```
+
+Here the version numbers will look like `4.0.0-123.abcdef456789` or `4.0.0-999999-SNAPSHOT`, respectively.
+When you pick up a new third-party component like `4.0.1`, your version numbers will match.
+To ensure that the two copies of that third-party version stay in synch, you can add:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-enforcer-plugin</artifactId>
+      <executions>
+        <execution>
+          <id>enforce-property</id>
+          <goals>
+            <goal>enforce</goal>
+          </goals>
+          <configuration>
+            <rules>
+              <requireProperty>
+                <property>revision</property>
+                <regex>\Q${some-library.version}\E</regex>
+                <regexMessage>revision (${revision}) must equal some-library.version (${some-library.version})</regexMessage>
+              </requireProperty>
+            </rules>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
+Since inadvertently running MRP on such a project would result in a mess,
+it is best to explicitly prevent that:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-release-plugin</artifactId>
+      <configuration>
+        <preparationGoals>not-set-up-for-MRP</preparationGoals>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
+```
+
+Pending [JEP-221](https://jenkins.io/jep/221) or similar,
+there is no automatic publishing of such artifacts.
+However, you can release manually if you have
+[personal deployment credentials](https://github.com/jenkins-infra/repository-permissions-updater).
+To cut a release:
+
+```bash
+git checkout master
+git pull --ff-only
+mvn -Dset.changelist -DaltDeploymentRepository=maven.jenkins-ci.org::default::https://repo.jenkins-ci.org/releases/ clean deploy
+```
+
 ## Usage in other POMs
 
 From repositories with POMs not inheriting from `org.jenkins-ci.plugins:plugin` you can follow similar steps to use Incrementals.
@@ -259,6 +397,21 @@ as well as the `incrementals.url` and `scmTag` properties,
 into your parent POM or directly into your repository POM.
 Some adjustment of `maven-enforcer-plugin` configuration may also be necessary.
 
+### Publishing
+
+Once Incrementals is enabled in a plugin repository,
+the stock `buildPlugin` method takes care of publishing artifacts from stable builds up to date with the base branch.
+For libraries or other components with custom `Jenkinsfile`s, you will need to set this up manually:
+
+```groovy
+node('maven') {
+  checkout scm
+  sh 'mvn -Dset.changelist install'
+  infra.prepareToPublishIncrementals()
+}
+infra.maybePublishIncrementals()
+```
+
 ## Offline testing
 
 If you wish to test usage offline, run
@@ -267,6 +420,7 @@ If you wish to test usage offline, run
 docker run --rm --name nexus -p 8081:8081 -v nexus-data:/nexus-data sonatype/nexus3
 ```
 
+Log in to http://localhost:8081/ and pick an admin password as per instructions, then
 add to your `~/.m2/settings.xml`:
 
 ```xml
