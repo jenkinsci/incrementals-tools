@@ -443,6 +443,10 @@ or define an equivalent profile in local settings.
 
 ## Changelog
 
+### 1.1 and later
+
+See [GitHub releases](https://github.com/jenkinsci/incrementals-tools/releases).
+
 ### 1.0-beta-7
 
 2018 Sep 04
