@@ -170,7 +170,9 @@ mvn incrementals:update -Dbranch=yourghacct:experiments-JENKINS-12345
 to get the most recent versions from some set of unmerged PRs.
 Then commit and push the resulting `pom.xml` edits.
 
-You will need GitHub credentials for this: [instructions](http://github-api.kohsuke.org/)
+You will need GitHub credentials for this: [instructions](http://github-api.kohsuke.org/). 
+When you are creating a GitHub personal access token, make sure that it has the permissions 
+`public_repo, read:org, repo_deployment`.
 
 ### Updating versions for Jenkins Docker images
 
