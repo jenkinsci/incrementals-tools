@@ -122,6 +122,18 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         if (!PARENT_DEPENDENCIES.contains(parent.getDependencyConflictId())) {
             throw new MojoFailureException("Unexpected <parent> " + parent);
         }
+        String connection = project.getScm().getConnection();
+        String developerConnection = project.getScm().getDeveloperConnection();
+        String url = project.getScm().getUrl();
+        if (connection == null || developerConnection == null || url == null) {
+            throw new MojoFailureException("<scm> must contain all of connection, developerConnection, and url");
+        }
+        ReplaceGitHubRepo connectionRGHR = replaceGitHubRepo(connection);
+        ReplaceGitHubRepo developerConnectionRGHR = replaceGitHubRepo(developerConnection);
+        ReplaceGitHubRepo urlRGHR = replaceGitHubRepo(url);
+        if (!developerConnectionRGHR.gitHubRepo.equals(connectionRGHR.gitHubRepo) || !urlRGHR.gitHubRepo.equals(connectionRGHR.gitHubRepo)) {
+            throw new MojoFailureException("Mismatch among gitHubRepo parts of <scm>: " + connectionRGHR.gitHubRepo + " vs. " + developerConnectionRGHR.gitHubRepo + " vs. " + urlRGHR.gitHubRepo);
+        }
         String minimum_parent;
         if (parent.getDependencyConflictId().equals(JENKINS_POM)) {
             minimum_parent = MINIMUM_JENKINS_PARENT;
@@ -131,9 +143,30 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         if (new ComparableVersion(parent.getVersion()).compareTo(new ComparableVersion(minimum_parent)) < 0) {
             PomHelper.setProjectParentVersion(pom, minimum_parent);
         }
+        prependProperty(pom, "gitHubRepo", connectionRGHR.gitHubRepo);
         prependProperty(pom, "changelist", "-SNAPSHOT");
         prependProperty(pom, "revision", m.group(1));
         PomHelper.setProjectValue(pom, "/project/scm/tag", "${scmTag}");
+        PomHelper.setProjectValue(pom, "/project/scm/connection", connectionRGHR.interpolableText);
+        PomHelper.setProjectValue(pom, "/project/scm/developerConnection", developerConnectionRGHR.interpolableText);
+        PomHelper.setProjectValue(pom, "/project/scm/url", urlRGHR.interpolableText);
+    }
+
+    private static final class ReplaceGitHubRepo {
+        final String interpolableText;
+        final String gitHubRepo;
+        ReplaceGitHubRepo(String interpolableText, String gitHubRepo) {
+            this.interpolableText = interpolableText;
+            this.gitHubRepo = gitHubRepo;
+        }
+    }
+    private static final Pattern TEXT = Pattern.compile("(.+[:/])((?:[^/]+)/(?:[^/]+?))((?:[.]git)?)");
+    static ReplaceGitHubRepo replaceGitHubRepo(String text) throws MojoFailureException {
+        Matcher m = TEXT.matcher(text);
+        if (!m.matches()) {
+            throw new MojoFailureException(text + " did not match " + TEXT);
+        }
+        return new ReplaceGitHubRepo(m.group(1) + "${gitHubRepo}" + m.group(3), m.group(2));
     }
 
     private void prependProperty(ModifiedPomXMLEventReader pom, String name, String value) throws XMLStreamException, MojoFailureException {

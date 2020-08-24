@@ -137,6 +137,36 @@ public class Main extends AbstractMavenLifecycleParticipant {
             } else {
                 log.info("Declining to override the `changelist` or `scmTag` properties");
             }
+            if (!props.contains("gitHubRepo")) {
+                String gitHubRepo;
+                String changeFork = System.getenv("CHANGE_FORK");
+                if (changeFork == null) {
+                    log.info("No information available to set -DgitHubRepo");
+                    gitHubRepo = null;
+                } else if (changeFork.contains("/")) {
+                    gitHubRepo = changeFork;
+                } else {
+                    String jobName = System.getenv("JOB_NAME");
+                    if (jobName == null) {
+                        log.info("CHANGE_FORK set but incomplete with JOB_NAME");
+                        gitHubRepo = null;
+                    } else {
+                        String[] pieces = jobName.split("/");
+                        if (pieces.length >= 2) { // e.g. Plugins/build-token-root-plugin/PR-21
+                            gitHubRepo = changeFork + "/" + pieces[pieces.length - 2]; // e.g. jglick/build-token-root-plugin
+                        } else {
+                            log.info("CHANGE_FORK set but incomplete and JOB_NAME also incomplete");
+                            gitHubRepo = null;
+                        }
+                    }
+                }
+                if (gitHubRepo != null) {
+                    log.info("Setting: -DgitHubRepo=" + gitHubRepo);
+                    props.setProperty("gitHubRepo", gitHubRepo);
+                }
+            } else {
+                log.info("Declining to override the `gitHubRepo` property");
+            }
         } else {
             log.debug("Skipping Git version setting unless run with -Dset.changelist");
         }
