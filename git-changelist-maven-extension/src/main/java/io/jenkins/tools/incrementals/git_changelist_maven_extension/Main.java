@@ -148,7 +148,7 @@ public class Main extends AbstractMavenLifecycleParticipant {
                 } else {
                     String jobName = System.getenv("JOB_NAME");
                     if (jobName == null) {
-                        log.info("CHANGE_FORK set but incomplete with JOB_NAME");
+                        log.info("CHANGE_FORK set but incomplete without JOB_NAME");
                         gitHubRepo = null;
                     } else {
                         String[] pieces = jobName.split("/");
