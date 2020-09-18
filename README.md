@@ -99,6 +99,10 @@ to
 </scm>
 ```
 
+Also replace `jenkinsci/your-repo` occurrences in the `scm` section with a POM property named `gitHubRepo`.
+This will ensure that deployments from forked pull requests will give correct checkout information,
+used for example by `plugin-compat-tester`.
+
 Now run
 
 ```bash
@@ -143,6 +147,13 @@ the artifact will be automatically deployed to the Incrementals repository.
 Your plugin will need to have a `github` field in
 [`repository-permissions-updater`](https://github.com/jenkins-infra/repository-permissions-updater)
 if it does not already.
+
+To check from a shell if your deployment is ready, get the [`gh` CLI](https://cli.github.com/) and try:
+
+```console
+$ gh pr checks | fgrep incrementals | awk '{print $4}'
+https://repo.jenkins-ci.org/incrementals/org/jenkins-ci/plugins/ldap/1.27-rc474.9577fe6b8ea6/
+```
 
 To produce equivalent artifacts in your local repository while working offline:
 
