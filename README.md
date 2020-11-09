@@ -372,22 +372,11 @@ To ensure that the two copies of that third-party version stay in synch, you can
 ```
 
 Since inadvertently running MRP on such a project would result in a mess,
-it is best to explicitly prevent that:
+it is best to explicitly prevent that.
+This is done automatically by the plugin and general component parent POMs
+when you define the `changelist.format` property.
 
-```xml
-<build>
-  <plugins>
-    <plugin>
-      <artifactId>maven-release-plugin</artifactId>
-      <configuration>
-        <preparationGoals>not-set-up-for-MRP</preparationGoals>
-      </configuration>
-    </plugin>
-  </plugins>
-</build>
-```
-
-Pending [JEP-221](https://jenkins.io/jep/221) or similar,
+Pending [JEP-229](https://jenkins.io/jep/229),
 there is no automatic publishing of such artifacts.
 However, you can release manually if you have
 [personal deployment credentials](https://github.com/jenkins-infra/repository-permissions-updater).
