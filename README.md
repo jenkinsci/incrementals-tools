@@ -352,9 +352,84 @@ it is best to explicitly prevent that.
 This is done automatically by the plugin and general component parent POMs
 when you define the `changelist.format` property.
 
-Pending [JEP-229](https://jenkins.io/jep/229),
-there is no automatic publishing of such artifacts.
-However, you can release manually if you have
+#### Automatic deployment
+
+If you have configured `changelist.format` as above,
+using [JEP-229](https://jenkins.io/jep/229) you can then set up automatic publishing of artifacts.
+
+First, file a patch to your component’s entry(ies) in [RPU](https://github.com/jenkins-infra/repository-permissions-updater/tree/master/permissions) to add
+
+```yaml
+cd:
+  enabled: true
+```
+
+Once that has been merged, start checking `https://github.com/jenkinsci/your-plugin/settings/secrets/actions`
+and you should soon see `MAVEN_TOKEN` and `MAVEN_USERNAME` appear under **Repository secrets**.
+
+Next, if you already have Release Drafter configured,
+remove any `tag-template` override in `.github/release-drafter.yml`,
+and delete `.github/workflows/release-drafter.yml` if using GitHub Actions (or remove the app from the repo otherwise).
+If you have not yet configured Release Drafter, just create `.github/release-drafter.yml` containing only
+
+```yaml
+_extends: .github
+```
+
+Now create `.github/workflows/cd.yaml` as follows:
+
+```yaml
+name: cd
+on:
+  workflow_dispatch:
+  check_run:
+    types:
+    - completed
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Verify CI status
+      uses: jenkins-infra/verify-ci-status-action@v1.1.0
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release Drafter
+      uses: release-drafter/release-drafter@v5.13.0
+      with:
+        name: next
+        tag: next
+        version: next
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check out
+      uses: actions/checkout@v2.3.4
+      with:
+        fetch-depth: 0
+    - name: Set up JDK 8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - name: Release
+      uses: jenkins-infra/jenkins-maven-cd-action@v1.0.1
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+        MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+```
+
+Now whenever Jenkins reports a successful build of your default branch,
+your component will be released to Artifactory and release notes published in GitHub.
+You do not need any special credentials or local checkout;
+just merge pull requests with suitable titles and labels.
+
+You can also trigger a deployment explicitly, if the current commit has a passing check from Jenkins.
+Visit `https://github.com/jenkinsci/your-plugin/actions?query=workflow%3Acd` and click **Run workflow**.
+If you prefer to only deploy explicitly, not on every push, just comment out the `check_run` section above.
+
+(Do not be alarmed to see numerous failed `cd` workflows besides the passing ones that actually deployed:
+every check posted other than the top-level `Jenkins` check triggers a workflow which should quickly fail.)
+
+As a fallback, you can also release manually if you have
 [personal deployment credentials](https://github.com/jenkins-infra/repository-permissions-updater).
 To cut a release:
 
