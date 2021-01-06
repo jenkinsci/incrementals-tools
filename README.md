@@ -420,7 +420,7 @@ jobs:
 Now whenever Jenkins reports a successful build of your default branch,
 your component will be released to Artifactory and release notes published in GitHub.
 You do not need any special credentials or local checkout;
-just merge pull requests with suitable titles and labels.
+just merge pull requests with suitable titles and [labels](https://github.com/jenkinsci/.github/blob/7baf6188c5dbe8f872bd7f4e13e1aaeee0b2e279/.github/release-drafter.yml#L9-L49).
 
 You can also trigger a deployment explicitly, if the current commit has a passing check from Jenkins.
 Visit `https://github.com/jenkinsci/your-plugin/actions?query=workflow%3Acd` and click **Run workflow**.
