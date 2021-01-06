@@ -337,38 +337,14 @@ For a component whose version number ought to reflect a release version of some 
 +    <changelist>999999-SNAPSHOT</changelist>
      <jenkins.version>2.176.4</jenkins.version>
      <java.level>8</java.level>
-     <some-library.version>4.0.0</some-library.version>
 ```
 
 Here the version numbers will look like `4.0.0-123.abcdef456789` or `4.0.0-999999-SNAPSHOT`, respectively.
-When you pick up a new third-party component like `4.0.1`, your version numbers will match.
-To ensure that the two copies of that third-party version stay in synch, you can add:
+When you pick up a new third-party component like `4.0.1`, your version numbers will match;
+to refer to the third-party component, just use
 
 ```xml
-<build>
-  <plugins>
-    <plugin>
-      <artifactId>maven-enforcer-plugin</artifactId>
-      <executions>
-        <execution>
-          <id>enforce-property</id>
-          <goals>
-            <goal>enforce</goal>
-          </goals>
-          <configuration>
-            <rules>
-              <requireProperty>
-                <property>revision</property>
-                <regex>\Q${some-library.version}\E</regex>
-                <regexMessage>revision (${revision}) must equal some-library.version (${some-library.version})</regexMessage>
-              </requireProperty>
-            </rules>
-          </configuration>
-        </execution>
-      </executions>
-    </plugin>
-  </plugins>
-</build>
+<version>${revision}</version>
 ```
 
 Since inadvertently running MRP on such a project would result in a mess,
