@@ -410,7 +410,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Release
-      uses: jenkins-infra/jenkins-maven-cd-action@v1.0.1
+      uses: jenkins-infra/jenkins-maven-cd-action@v1.1.0
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
@@ -418,6 +418,7 @@ jobs:
 ```
 
 Now whenever Jenkins reports a successful build of your default branch,
+and at least one pull request had a label indicating it was of interest to users (e.g. `enhancement` rather than `chore`),
 your component will be released to Artifactory and release notes published in GitHub.
 You do not need any special credentials or local checkout;
 just merge pull requests with suitable titles and [labels](https://github.com/jenkinsci/.github/blob/7baf6188c5dbe8f872bd7f4e13e1aaeee0b2e279/.github/release-drafter.yml#L9-L49).
