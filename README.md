@@ -284,7 +284,7 @@ For a regular component whose version number is not intrinsically meaningful:
 @@ -1,2 +1,3 @@
  -Pconsume-incrementals
  -Pmight-produce-incrementals
-+-Dchangelist.format=%d.%s
++-Dchangelist.format=%d.v%s
 --- a/pom.xml
 +++ b/pom.xml
 @@ -7,7 +7,7 @@
@@ -301,7 +301,7 @@ For a regular component whose version number is not intrinsically meaningful:
      </properties>
 ```
 
-Here a CI/release build (`-Dset.changelist` specified) will be of the form `123.abcdef456789`.
+Here a CI/release build (`-Dset.changelist` specified) will be of the form `123.vabcdef456789`.
 A snapshot build will be `999999-SNAPSHOT`: arbitrary but treated as a snapshot by Maven and newer than any release.
 
 For a component whose version number ought to reflect a release version of some wrapped component:
@@ -322,7 +322,7 @@ For a component whose version number ought to reflect a release version of some 
 @@ -1,2 +1,3 @@
  -Pconsume-incrementals
  -Pmight-produce-incrementals
-+-Dchangelist.format=%d.%s
++-Dchangelist.format=%d.v%s
 --- a/pom.xml
 +++ b/pom.xml
 @@ -10,12 +10,12 @@
@@ -339,7 +339,7 @@ For a component whose version number ought to reflect a release version of some 
      <java.level>8</java.level>
 ```
 
-Here the version numbers will look like `4.0.0-123.abcdef456789` or `4.0.0-999999-SNAPSHOT`, respectively.
+Here the version numbers will look like `4.0.0-123.vabcdef456789` or `4.0.0-999999-SNAPSHOT`, respectively.
 When you pick up a new third-party component like `4.0.1`, your version numbers will match;
 to refer to the third-party component, just use
 
