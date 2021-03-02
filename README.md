@@ -376,6 +376,15 @@ If you have not yet configured Release Drafter, just create `.github/release-dra
 _extends: .github
 ```
 
+If you have a `.github/dependabot.yml`, it is a good idea to add
+
+```yaml
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: daily
+```
+
 Now create `.github/workflows/cd.yaml` as follows:
 
 ```yaml
