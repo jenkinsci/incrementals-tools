@@ -385,46 +385,7 @@ If you have a `.github/dependabot.yml`, it is a good idea to add
     interval: daily
 ```
 
-Now create `.github/workflows/cd.yaml` as follows:
-
-```yaml
-name: cd
-on:
-  workflow_dispatch:
-  check_run:
-    types:
-    - completed
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Verify CI status
-      uses: jenkins-infra/verify-ci-status-action@v1.1.0
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Release Drafter
-      uses: release-drafter/release-drafter@v5.13.0
-      with:
-        name: next
-        tag: next
-        version: next
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Check out
-      uses: actions/checkout@v2.3.4
-      with:
-        fetch-depth: 0
-    - name: Set up JDK 8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
-    - name: Release
-      uses: jenkins-infra/jenkins-maven-cd-action@v1.1.0
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-        MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
-```
+Finally create `.github/workflows/cd.yaml` as a copy of [this template](https://github.com/jenkinsci/.github/blob/master/workflow-templates/cd.yaml).
 
 Now whenever Jenkins reports a successful build of your default branch,
 and at least one pull request had a label indicating it was of interest to users (e.g. `enhancement` rather than `chore`),
