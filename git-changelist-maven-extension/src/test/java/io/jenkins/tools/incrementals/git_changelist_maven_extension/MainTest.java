@@ -26,6 +26,7 @@ package io.jenkins.tools.incrementals.git_changelist_maven_extension;
 
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.Test;
@@ -42,7 +43,9 @@ public class MainTest {
         "pr", "dev",
     };
     @Test public void alphaBeta() {
-        String sanitized = Main.sanitize("852b473a2b8c");
+        String hash = "852b473a2b8c";
+        String sanitized = Main.sanitize(hash);
+        assertThat(hash + " has been sanitized to the expected format", sanitized, is("852b_473a_2b_8c"));
         String canonical = new ComparableVersion(sanitized).getCanonical();
         for (String prerelease : PRERELEASE) {
             assertThat(sanitized + " treated as a prerelease", canonical, not(containsString(prerelease)));
