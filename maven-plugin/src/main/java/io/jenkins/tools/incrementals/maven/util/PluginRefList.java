@@ -27,7 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Dependency;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -57,7 +57,7 @@ public class PluginRefList extends ArrayList<PluginRef> {
         return plugins;
     }
 
-    @Nonnull
+    @NonNull
     public List<Dependency> toDependencyList() {
         List<Dependency> depList = new ArrayList<>(this.size());
         for (PluginRef plugin : this) {
@@ -67,7 +67,7 @@ public class PluginRefList extends ArrayList<PluginRef> {
     }
 
 
-    public void writeToFile(@Nonnull File dest) throws IOException {
+    public void writeToFile(@NonNull File dest) throws IOException {
         List<String> outputLines = new ArrayList<>(this.size());
         for (PluginRef ref : this) {
             outputLines.add(ref.toPluginsTxtString());
