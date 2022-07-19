@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
@@ -173,7 +174,7 @@ public class Main extends AbstractMavenLifecycleParticipant {
     }
 
     static String sanitize(String hash) {
-        return hash.replaceAll("[ab]", "$0_");
+        return hash.replaceAll("[ab]", "$0_").replaceAll("_$", "");
     }
 
     private static String summarize(RevCommit c) {
