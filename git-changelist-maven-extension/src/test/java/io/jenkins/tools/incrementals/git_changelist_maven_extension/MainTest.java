@@ -42,6 +42,7 @@ public class MainTest {
         // Nonstandard ones in Dependabot? https://github.com/dependabot/dependabot-core/blob/f146743aa400c7913b5e953e1b93c8b40345aaf4/maven/lib/dependabot/maven/version.rb#L24-L25
         "pr", "dev",
     };
+
     @Test public void alphaBeta() {
         String hash = "852b473a2b8c";
         String sanitized = Main.sanitize(hash);
@@ -52,4 +53,13 @@ public class MainTest {
         }
     }
 
+    @Test public void alphaBetaTrailing() {
+        String hash = "852b473a2bcb";
+        String sanitized = Main.sanitize(hash);
+        assertThat(hash + " has been sanitized to the expected format", sanitized, is("852b_473a_2b_cb"));
+        String canonical = new ComparableVersion(sanitized).getCanonical();
+        for (String prerelease : PRERELEASE) {
+            assertThat(sanitized + " treated as a prerelease", canonical, not(containsString(prerelease)));
+        }
+    }
 }

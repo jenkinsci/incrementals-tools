@@ -173,7 +173,7 @@ public class Main extends AbstractMavenLifecycleParticipant {
     }
 
     static String sanitize(String hash) {
-        return hash.replaceAll("[ab]", "$0_");
+        return hash.replaceAll("[ab]", "$0_").replaceAll("_$", "");
     }
 
     private static String summarize(RevCommit c) {
