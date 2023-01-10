@@ -298,25 +298,37 @@ docker run --rm --name nexus -p 8081:8081 -v nexus-data:/nexus-data sonatype/nex
 ```
 
 Log in to http://localhost:8081/ and pick an admin password as per instructions, then
-add to your `~/.m2/settings.xml`:
+edit your `~/.m2/settings.xml` to:
 
 ```xml
-<servers>
-  <server>
-    <id>incrementals</id>
-    <username>admin</username>
-    <password>admin123</password>
-  </server>
-</servers>
+<settings>
+  <servers>
+    <server>
+      <id>incrementals</id>
+      <username>admin</username>
+      <password>admin123</password>
+    </server>
+  </servers>
+  <mirrors>
+    <mirror>
+      <id>incrementals-mirror</id>
+      <url>http://localhost:8081/repository/maven-releases/</url>
+      <mirrorOf>incrementals</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
 ```
 
-and then add to command lines consuming or producing incremental versions:
+and then add to the command line when producing incremental versions with [maven-deploy-plugin](https://maven.apache.org/plugins/maven-deploy-plugin/deploy-mojo.html):
 
 ```
--Dincrementals.url=http://localhost:8081/repository/maven-releases/
+-DaltDeploymentRepository=incrementals::http://localhost:8081/repository/maven-releases/
 ```
 
-or define an equivalent profile in local settings.
+or if using [maven-release-plugin](https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html):
+```
+-Darguments="-DaltDeploymentRepository=incrementals::http://localhost:8081/repository/maven-releases/"
+```
 
 ## Changelog
 
