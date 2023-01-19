@@ -325,10 +325,6 @@ and then add to the command line when producing incremental versions with [maven
 -DaltDeploymentRepository=incrementals::http://localhost:8081/repository/maven-releases/
 ```
 
-or if using [maven-release-plugin](https://maven.apache.org/maven-release/maven-release-plugin/perform-mojo.html):
-```
--Darguments="-DaltDeploymentRepository=incrementals::http://localhost:8081/repository/maven-releases/"
-```
 
 ## Changelog
 
