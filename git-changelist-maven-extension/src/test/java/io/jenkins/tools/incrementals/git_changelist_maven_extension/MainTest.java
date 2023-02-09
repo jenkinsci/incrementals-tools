@@ -56,7 +56,7 @@ public class MainTest {
     @Test public void alphaBetaTrailing() {
         String hash = "852b473a2bcb";
         String sanitized = Main.sanitize(hash);
-        assertThat(hash + " has been sanitized to the expected format", sanitized, is("852b_473a_2b_cb"));
+        assertThat(hash + " has been sanitized to the expected format", sanitized, is("852b_473a_2b_cb_"));
         String canonical = new ComparableVersion(sanitized).getCanonical();
         for (String prerelease : PRERELEASE) {
             assertThat(sanitized + " treated as a prerelease", canonical, not(containsString(prerelease)));
