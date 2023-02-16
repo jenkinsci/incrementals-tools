@@ -34,7 +34,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.kohsuke.github.GHCompare;

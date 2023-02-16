@@ -25,8 +25,8 @@ package io.jenkins.tools.incrementals.maven.util;
 
 import org.apache.maven.model.Dependency;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 
 /**
@@ -100,7 +100,7 @@ public class PluginRef {
         return artifactId + (version != null ? (":" + version) : "");
     }
 
-    @Nonnull
+    @NonNull
     public String toPluginsTxtString() {
         if (comment != null) {
             return comment;
@@ -121,19 +121,19 @@ public class PluginRef {
         return artifactId + (label != null ? (":" + label) : "");
     }
 
-    @Nonnull
-    public static PluginRef forComment(@Nonnull String line) throws IOException {
+    @NonNull
+    public static PluginRef forComment(@NonNull String line) throws IOException {
         PluginRef ref = new PluginRef();
         ref.comment = line;
         return ref;
     }
 
-    public void setVersion(@Nonnull String version) {
+    public void setVersion(@NonNull String version) {
         this.version = version;
     }
 
-    @Nonnull
-    public static PluginRef fromString(@Nonnull String str) throws IOException {
+    @NonNull
+    public static PluginRef fromString(@NonNull String str) throws IOException {
         String[] entries = str.split(":");
         if (entries.length == 0) {
             throw new IOException("Version string is corrupted: " + str);
@@ -174,7 +174,7 @@ public class PluginRef {
         return plugin;
     }
 
-    @Nonnull
+    @NonNull
     public Dependency toDependency() {
         Dependency dep = new Dependency();
         dep.setArtifactId(artifactId);
