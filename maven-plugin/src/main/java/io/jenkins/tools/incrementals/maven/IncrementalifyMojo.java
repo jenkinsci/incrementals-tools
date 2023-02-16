@@ -28,10 +28,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
@@ -39,7 +41,6 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
@@ -49,9 +50,14 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.wagon.Wagon;
 import org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.PomHelper;
+import org.codehaus.mojo.versions.api.VersionRetrievalException;
+import org.codehaus.mojo.versions.api.VersionsHelper;
+import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
 import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -70,18 +76,26 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
     @Component
     private BuildPluginManager pluginManager;
 
+    @Inject public IncrementalifyMojo(RepositorySystem repositorySystem, org.eclipse.aether.RepositorySystem aetherRepositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
+        super(repositorySystem, aetherRepositorySystem, wagonMap, changeRecorders);
+    }
+
     @Override public void execute() throws MojoExecutionException, MojoFailureException {
         File dotMvn = new File(project.getBasedir(), ".mvn");
         File extensionsXml = new File(dotMvn, "extensions.xml");
         if (extensionsXml.isFile()) {
             throw new MojoFailureException("Editing an existing " + extensionsXml + " is not yet supported");
         }
-        VersionRange any;
         ArtifactVersions gclmeVersions;
         try {
+            gclmeVersions = getHelper().lookupArtifactVersions(getHelper().createDependencyArtifact("io.jenkins.tools.incrementals", "git-changelist-maven-extension", "[0,)", "type", null, null), true);
+        } catch (VersionRetrievalException x) {
+            throw new MojoExecutionException(x.getMessage(), x);
+        }
+        VersionRange any;
+        try {
             any = VersionRange.createFromVersionSpec("[0,)");
-            gclmeVersions = getHelper().lookupArtifactVersions(getHelper().createDependencyArtifact("io.jenkins.tools.incrementals", "git-changelist-maven-extension", any, "type", null, null), true);
-        } catch (ArtifactMetadataRetrievalException | InvalidVersionSpecificationException x) {
+        } catch (InvalidVersionSpecificationException x) {
             throw new MojoExecutionException(x.getMessage(), x);
         }
         ArtifactVersion gclmeNewestVersion = gclmeVersions.getNewestVersion(any, false);
@@ -105,7 +119,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         }
     }
 
-    @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException, ArtifactMetadataRetrievalException {
+    @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
         String version = PomHelper.getProjectVersion(pom);
         Matcher m = Pattern.compile("(.+)-SNAPSHOT").matcher(version);
         if (!m.matches()) {
@@ -115,7 +129,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         if (!origTag.equals("HEAD")) {
             throw new MojoFailureException("Unexpected tag: " + origTag);
         }
-        Artifact parent = PomHelper.getProjectParent(pom, getHelper());
+        Artifact parent = getProjectParent(pom, getHelper());
         if (parent == null) {
             throw new MojoFailureException("No <parent> found");
         }
@@ -146,10 +160,71 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         prependProperty(pom, "gitHubRepo", connectionRGHR.gitHubRepo);
         prependProperty(pom, "changelist", "-SNAPSHOT");
         prependProperty(pom, "revision", m.group(1));
-        PomHelper.setProjectValue(pom, "/project/scm/tag", "${scmTag}");
-        PomHelper.setProjectValue(pom, "/project/scm/connection", connectionRGHR.interpolableText);
-        PomHelper.setProjectValue(pom, "/project/scm/developerConnection", developerConnectionRGHR.interpolableText);
-        PomHelper.setProjectValue(pom, "/project/scm/url", urlRGHR.interpolableText);
+        PomHelper.setElementValue(pom, "/project/scm", "tag", "${scmTag}");
+        PomHelper.setElementValue(pom, "/project/scm", "connection", connectionRGHR.interpolableText);
+        PomHelper.setElementValue(pom, "/project/scm", "developerConnection", developerConnectionRGHR.interpolableText);
+        PomHelper.setElementValue(pom, "/project/scm", "url", urlRGHR.interpolableText);
+    }
+
+    /**
+     * Gets the parent artifact from the pom.
+     *
+     * @param pom    The pom.
+     * @param helper The helper (used to create the artifact).
+     * @return The parent artifact or <code>null</code> if no parent is specified.
+     * @throws XMLStreamException if something went wrong.
+     */
+    private static Artifact getProjectParent( final ModifiedPomXMLEventReader pom, VersionsHelper helper )
+            throws XMLStreamException
+    {
+        Stack<String> stack = new Stack<>();
+        String path = "";
+        final Pattern matchScopeRegex = Pattern.compile( "/project/parent((/groupId)|(/artifactId)|(/version))" );
+        String groupId = null;
+        String artifactId = null;
+        String version = null;
+
+        pom.rewind();
+
+        while ( pom.hasNext() )
+        {
+            XMLEvent event = pom.nextEvent();
+            if ( event.isStartElement() )
+            {
+                stack.push( path );
+                final String elementName = event.asStartElement().getName().getLocalPart();
+                path = path + "/" + elementName;
+
+                if ( matchScopeRegex.matcher( path ).matches() )
+                {
+                    if ( "groupId".equals( elementName ) )
+                    {
+                        groupId = pom.getElementText().trim();
+                        path = stack.pop();
+                    }
+                    else if ( "artifactId".equals( elementName ) )
+                    {
+                        artifactId = pom.getElementText().trim();
+                        path = stack.pop();
+                    }
+                    else if ( "version".equals( elementName ) )
+                    {
+                        version = pom.getElementText().trim();
+                        path = stack.pop();
+                    }
+                }
+            }
+            if ( event.isEndElement() )
+            {
+                path = stack.pop();
+            }
+        }
+        if ( groupId == null || artifactId == null || version == null )
+        {
+            return null;
+        }
+        return helper.createDependencyArtifact( groupId, artifactId, version, "pom",
+                null, null );
     }
 
     private static final class ReplaceGitHubRepo {

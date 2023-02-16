@@ -28,10 +28,10 @@ import io.jenkins.tools.incrementals.lib.UpdateChecker;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
-import org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
@@ -39,13 +39,17 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.wagon.Wagon;
 import org.codehaus.mojo.versions.AbstractVersionsDependencyUpdaterMojo;
-import org.codehaus.mojo.versions.Property;
 import org.codehaus.mojo.versions.UpdatePropertiesMojo;
 import org.codehaus.mojo.versions.UseLatestReleasesMojo;
 import org.codehaus.mojo.versions.api.ArtifactAssociation;
 import org.codehaus.mojo.versions.api.PomHelper;
+import org.codehaus.mojo.versions.api.Property;
 import org.codehaus.mojo.versions.api.PropertyVersions;
+import org.codehaus.mojo.versions.api.VersionsHelper;
+import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
 import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
 
 /**
@@ -74,7 +78,11 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
     @Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true)
     private List<MavenArtifactRepository> repos;
 
-    @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException, ArtifactMetadataRetrievalException {
+    @Inject public UpdateMojo(RepositorySystem repositorySystem, org.eclipse.aether.RepositorySystem aetherRepositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
+        super(repositorySystem, aetherRepositorySystem, wagonMap, changeRecorders);
+    }
+
+    @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
         try {
             UpdateChecker checker = new UpdateChecker(message -> getLog().info(message),
                 // TODO use repos.stream().map(MavenArtifactRepository::getUrl).collect(Collectors.toList()) if UpdateChecker.loadVersions is fixed to exclude snapshots and pass authentication
@@ -92,7 +100,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 }
             }
             updateProperties(pom, checker);
-        } catch (MojoExecutionException | MojoFailureException | XMLStreamException | ArtifactMetadataRetrievalException x) {
+        } catch (MojoExecutionException | MojoFailureException | XMLStreamException x) {
             throw x;
         } catch (Exception x) {
             throw new MojoExecutionException("Update failed", x);
@@ -133,7 +141,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
     }
 
     private void updateProperties(ModifiedPomXMLEventReader pom, UpdateChecker checker) throws Exception {
-        PROPERTY: for (Map.Entry<Property, PropertyVersions> entry : getHelper().getVersionPropertiesMap(getProject(), /* TODO */ new Property[0], /* TODO */ null, null, true).entrySet()) {
+        PROPERTY: for (Map.Entry<Property, PropertyVersions> entry : getHelper().getVersionPropertiesMap(VersionsHelper.VersionPropertiesMapRequest.builder().withMavenProject(getProject()).build()).entrySet()) {
             Property property = entry.getKey();
             String name = property.getName();
             PropertyVersions versions = entry.getValue();
