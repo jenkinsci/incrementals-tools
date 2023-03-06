@@ -11,6 +11,11 @@
     <properties>
         <maven-plugin-tools.version>3.7.1</maven-plugin-tools.version>
     </properties>
+
+    <prerequisites>
+        <maven>${maven.version}</maven>
+    </prerequisites>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

@@ -27,7 +27,7 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.version>3.9.0</maven.version>
+        <maven.version>3.8.1</maven.version>
     </properties>
     <modules>
         <module>lib</module>
