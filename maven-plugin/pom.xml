@@ -8,6 +8,7 @@
     </parent>
     <artifactId>incrementals-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
+    <url>https://github.com/jenkinsci/incrementals-tools/tree/master/maven-plugin</url>
     <properties>
         <maven-plugin-tools.version>3.8.1</maven-plugin-tools.version>
     </properties>

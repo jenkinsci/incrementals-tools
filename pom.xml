@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
     <name>Incrementals Tools POM</name>
     <description>Tools for working with JEP-305 “Incrementals”.</description>
+    <url>https://github.com/jenkinsci/incrementals-tools</url>
     <licenses>
         <license>
             <name>MIT License</name>
