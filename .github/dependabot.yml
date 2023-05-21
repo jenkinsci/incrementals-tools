@@ -8,6 +8,9 @@ updates:
   ignore:
   # maven core artifacts are provided by the running maven, do not update to prevent consuming something unavailable
   - dependency-name: org.apache.maven:*
+  # jgit 6 requires Java 11
+  - dependency-name: "org.eclipse.jgit:org.eclipse.jgit"
+    versions: [ ">=6.0.0.202111291000-r" ]
 - package-ecosystem: github-actions
   directory: /
   schedule:
