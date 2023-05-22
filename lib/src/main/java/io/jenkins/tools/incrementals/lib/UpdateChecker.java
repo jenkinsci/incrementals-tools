@@ -161,7 +161,6 @@ public final class UpdateChecker {
 
     /**
      * Look for all known versions of a given artifact.
-     * @param repos a set of repository URLs to check
      * @return a possibly empty set of versions, sorted descending
      */
     private SortedSet<VersionAndRepo> loadVersions(String groupId, String artifactId) throws Exception {
