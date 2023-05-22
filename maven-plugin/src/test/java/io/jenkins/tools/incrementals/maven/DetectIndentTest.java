@@ -1,6 +1,7 @@
 package io.jenkins.tools.incrementals.maven;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,23 +16,12 @@ public class DetectIndentTest {
     });
   }
 
-  private String input;
-
-  private int size;
-
-  private char type;
-
-  public DetectIndentTest(String input, int size, char type) {
-    this.input = input;
-    this.size = size;
-    this.type = type;
-  }
-
-  @Test
-  public void detectIndentSize() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void detectIndentSize(String input, int size, char type) {
     DetectIndent detectIndent = new DetectIndent();
     DetectIndent.Indent indent = detectIndent.detect(input);
-    assertEquals(size, indent.size);
-    assertEquals(type, indent.type);
+    assertEquals(size, indent.getSize());
+    assertEquals(type, indent.getType());
   }
 }

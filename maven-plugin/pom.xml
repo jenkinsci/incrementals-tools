@@ -10,6 +10,7 @@
     <packaging>maven-plugin</packaging>
     <properties>
         <maven-plugin-tools.version>3.8.1</maven-plugin-tools.version>
+        <junit.version>5.9.3</junit.version>
     </properties>
 
     <prerequisites>
@@ -66,7 +67,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.9.3</version>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
