@@ -1,17 +1,14 @@
 package io.jenkins.tools.incrementals.maven;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(Parameterized.class)
 public class DetectIndentTest {
 
-  @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         { "abc", 0, ' ' }, { "  abc", 2, ' ' }, { "    abc", 4, ' ' }, { "\t\tabc", 2, '\t' }, { "\tabc", 1, '\t' }
@@ -34,7 +31,7 @@ public class DetectIndentTest {
   public void detectIndentSize() {
     DetectIndent detectIndent = new DetectIndent();
     DetectIndent.Indent indent = detectIndent.detect(input);
-    Assert.assertEquals(size, indent.size);
-    Assert.assertEquals(type, indent.type);
+    assertEquals(size, indent.size);
+    assertEquals(type, indent.type);
   }
 }
