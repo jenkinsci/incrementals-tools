@@ -60,8 +60,8 @@ public class RequireExtensionVersion extends AbstractEnforcerRule {
      * <li><code>(,2.0.5],[2.1.1,)</code> Versions up to 2.0.5 (included) and 2.1.1 or higher</li>
      * </ul>
      *
-     * @see {@link #setVersion(String)}
-     * @see {@link #getVersion()}
+     * @see #setVersion(String)
+     * @see #getVersion()
      */
     private String version;
 
