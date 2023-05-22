@@ -25,11 +25,12 @@
 package io.jenkins.tools.incrementals.git_changelist_maven_extension;
 
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import org.junit.Test;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 public class MainTest {
 
@@ -43,7 +44,8 @@ public class MainTest {
         "pr", "dev",
     };
 
-    @Test public void alphaBeta() {
+    @Test
+    public void alphaBeta() {
         String hash = "852b473a2b8c";
         String sanitized = Main.sanitize(hash);
         assertThat(hash + " has been sanitized to the expected format", sanitized, is("852b_473a_2b_8c"));
