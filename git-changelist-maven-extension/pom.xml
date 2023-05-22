@@ -9,7 +9,6 @@
     <artifactId>git-changelist-maven-extension</artifactId>
     <name>Git Changelist Maven Extension</name>
     <description>Maven extension which can set the special changelist user property according to Git metadata.</description>
-    <url>https://github.com/jenkinsci/incrementals-tools/tree/master/git-changelist-maven-extension</url>
     <build>
         <plugins>
             <plugin>

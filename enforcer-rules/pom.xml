@@ -6,7 +6,6 @@
         <artifactId>parent</artifactId>
         <version>1.7-SNAPSHOT</version>
     </parent>
-    <url>https://github.com/jenkinsci/incrementals-tools/tree/master/enforcer-rules</url>
     <artifactId>incrementals-enforcer-rules</artifactId>
     <dependencies>
         <dependency>

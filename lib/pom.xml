@@ -7,7 +7,6 @@
         <version>1.7-SNAPSHOT</version>
     </parent>
     <artifactId>lib</artifactId>
-    <url>https://github.com/jenkinsci/incrementals-tools/tree/master/lib</url>
     <dependencies>
         <dependency>
             <groupId>com.github.spotbugs</groupId>
