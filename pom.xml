@@ -13,13 +13,14 @@
     <packaging>pom</packaging>
     <name>Incrementals Tools POM</name>
     <description>Tools for working with JEP-305 “Incrementals”.</description>
+    <url>https://github.com/jenkinsci/incrementals-tools</url>
     <licenses>
         <license>
             <name>MIT License</name>
             <url>https://opensource.org/licenses/MIT</url>
         </license>
     </licenses>
-    <scm>
+    <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false" child.scm.url.inherit.append.path="false">
         <connection>scm:git:git@github.com/jenkinsci/incrementals-tools.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/incrementals-tools.git</developerConnection>
         <url>https://github.com/jenkinsci/incrementals-tools</url>
