@@ -14,6 +14,6 @@ jobs:
       with:
         java-version: "${{ matrix.java }}"
     - name: Build with Maven
-      run: mvn -B -V -ntp -Dstyle.color=always package
+      run: mvn -B -V -ntp -Dstyle.color=always package javadoc:javadoc
       env:
         MAVEN_OPTS: -Djansi.force=true
