@@ -36,12 +36,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -59,13 +60,14 @@ import org.eclipse.jgit.revwalk.RevWalk;
  * @see <a href="https://maven.apache.org/maven-ci-friendly.html">Maven CI Friendly Versions</a>
  * @see <a href="https://maven.apache.org/docs/3.3.1/release-notes.html#Core_Extensions">Core Extensions</a>
  */
-@Component(role=AbstractMavenLifecycleParticipant.class, hint="git-changelist-maven-extension")
+@Named("git-changelist-maven-extension")
+@Singleton
 public class Main extends AbstractMavenLifecycleParticipant {
 
     private static final String IGNORE_DIRT = "ignore.dirt";
     private static final int ABBREV_LENGTH = 12;
 
-    @Requirement
+    @Inject
     private Logger log;
 
     @Override
