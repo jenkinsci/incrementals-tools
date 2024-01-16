@@ -108,6 +108,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>${maven-plugin-tools.version}</version>
+                    <configuration>
+                        <goalPrefix>incrementals</goalPrefix>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
