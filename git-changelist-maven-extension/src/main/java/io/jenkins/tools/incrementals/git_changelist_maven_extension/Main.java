@@ -78,7 +78,7 @@ public class Main extends AbstractMavenLifecycleParticipant {
                 long start = System.nanoTime();
                 File dir = session.getRequest().getMultiModuleProjectDirectory();
                 log.debug("running in " + dir);
-                String fullHash, hash;
+                String fullHash, hash, timestamp;
                 int count;
                 try (Git git = Git.open(dir)) {
                     Status status = git.status().call();
@@ -100,6 +100,7 @@ public class Main extends AbstractMavenLifecycleParticipant {
                     hash = head.abbreviate(ABBREV_LENGTH).name();
                     try (RevWalk walk = new RevWalk(repo)) {
                         RevCommit headC = walk.parseCommit(head);
+                        timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochSecond(headC.getCommitTime()));
                         count = revCount(walk, headC);
                         { // Look for repository commits reachable from HEAD that would clash.
                             Map<String,List<RevCommit>> encountered = new HashMap<>();
@@ -133,9 +134,10 @@ public class Main extends AbstractMavenLifecycleParticipant {
                 }
                 log.debug("Spent " + (System.nanoTime() - start) / 1000 / 1000 + "ms on calculations");
                 String value = String.format(props.getProperty("changelist.format", "-rc%d.%s"), count, sanitize(hash));
-                log.info("Setting: -Dchangelist=" + value + " -DscmTag=" + fullHash);
+                log.info("Setting: -Dchangelist=" + value + " -DscmTag=" + fullHash + " -Dproject.build.outputTimestamp=" + timestamp);
                 props.setProperty("changelist", value);
                 props.setProperty("scmTag", fullHash);
+                props.setProperty("project.build.outputTimestamp", timestamp);
             } else {
                 log.info("Declining to override the `changelist` or `scmTag` properties");
             }
