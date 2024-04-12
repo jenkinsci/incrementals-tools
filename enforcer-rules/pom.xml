@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.jenkins.tools.incrementals</groupId>
         <artifactId>parent</artifactId>
-        <version>1.8</version>
+        <version>1.9-SNAPSHOT</version>
     </parent>
     <artifactId>incrementals-enforcer-rules</artifactId>
     <dependencies>
