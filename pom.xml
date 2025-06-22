@@ -27,7 +27,7 @@
         <tag>HEAD</tag>
     </scm>
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>17</maven.compiler.release>
         <maven.version>3.9.6</maven.version>
     </properties>
     <modules>
@@ -36,17 +36,6 @@
         <module>git-changelist-maven-extension</module>
         <module>enforcer-rules</module>
     </modules>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>17</source>
-                    <target>17</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencyManagement>
         <dependencies>
             <dependency>
