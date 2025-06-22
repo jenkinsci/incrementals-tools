@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        java: ["11", "17"]
+        java: ["17", "21"]
     runs-on: ubuntu-latest
     steps:
     - name: Setup Maven Action
