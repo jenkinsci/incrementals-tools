@@ -7,7 +7,12 @@ updates:
     interval: weekly
   ignore:
   # maven core artifacts are provided by the running maven, do not update to prevent consuming something unavailable
-  - dependency-name: org.apache.maven:*
+  - dependency-name: org.apache.maven:maven-artifact
+  - dependency-name: org.apache.maven:maven-core
+  - dependency-name: org.apache.maven:maven-model
+  - dependency-name: org.apache.maven:maven-plugin-api
+  - dependency-name: org.apache.maven:maven-repository-metadata
+  - dependency-name: org.apache.maven:maven-settings
 - package-ecosystem: github-actions
   directory: /
   schedule:
