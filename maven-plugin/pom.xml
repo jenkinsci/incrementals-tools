@@ -9,7 +9,7 @@
     <artifactId>incrementals-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <properties>
-        <maven-plugin-tools.version>3.13.1</maven-plugin-tools.version>
+        <maven-plugin-tools.version>3.15.1</maven-plugin-tools.version>
         <junit.version>5.13.1</junit.version>
     </properties>
 
