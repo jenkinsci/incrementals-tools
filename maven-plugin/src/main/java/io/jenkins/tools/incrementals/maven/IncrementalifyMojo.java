@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
@@ -50,7 +51,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.wagon.Wagon;
 import org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
@@ -59,6 +59,7 @@ import org.codehaus.mojo.versions.api.VersionRetrievalException;
 import org.codehaus.mojo.versions.api.VersionsHelper;
 import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
 import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
+import org.eclipse.aether.RepositorySystem;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
@@ -76,8 +77,8 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
     @Component
     private BuildPluginManager pluginManager;
 
-    @Inject public IncrementalifyMojo(RepositorySystem repositorySystem, org.eclipse.aether.RepositorySystem aetherRepositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
-        super(repositorySystem, aetherRepositorySystem, wagonMap, changeRecorders);
+    @Inject public IncrementalifyMojo(ArtifactHandlerManager artifactHandlerManager, RepositorySystem repositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
+        super(artifactHandlerManager, repositorySystem, wagonMap, changeRecorders);
     }
 
     @Override public void execute() throws MojoExecutionException, MojoFailureException {
@@ -88,7 +89,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         }
         ArtifactVersions gclmeVersions;
         try {
-            gclmeVersions = getHelper().lookupArtifactVersions(getHelper().createDependencyArtifact("io.jenkins.tools.incrementals", "git-changelist-maven-extension", "[0,)", "type", null, null), true);
+            gclmeVersions = getHelper().lookupArtifactVersions(getHelper().createDependencyArtifact("io.jenkins.tools.incrementals", "git-changelist-maven-extension", "[0,)", "type", null, null, false), true);
         } catch (VersionRetrievalException x) {
             throw new MojoExecutionException(x.getMessage(), x);
         }
@@ -224,7 +225,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
             return null;
         }
         return helper.createDependencyArtifact( groupId, artifactId, version, "pom",
-                null, null );
+                null, null, false );
     }
 
     private static final class ReplaceGitHubRepo {

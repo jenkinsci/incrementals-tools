@@ -32,6 +32,7 @@ import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
@@ -39,7 +40,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.wagon.Wagon;
 import org.codehaus.mojo.versions.AbstractVersionsDependencyUpdaterMojo;
 import org.codehaus.mojo.versions.UpdatePropertiesMojo;
@@ -51,6 +51,7 @@ import org.codehaus.mojo.versions.api.PropertyVersions;
 import org.codehaus.mojo.versions.api.VersionsHelper;
 import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
 import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
+import org.eclipse.aether.RepositorySystem;
 
 /**
  * Similar to {@link UseLatestReleasesMojo} plus {@link UpdatePropertiesMojo} but uses {@link UpdateChecker}.
@@ -78,8 +79,8 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
     @Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true)
     private List<MavenArtifactRepository> repos;
 
-    @Inject public UpdateMojo(RepositorySystem repositorySystem, org.eclipse.aether.RepositorySystem aetherRepositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
-        super(repositorySystem, aetherRepositorySystem, wagonMap, changeRecorders);
+    @Inject public UpdateMojo(ArtifactHandlerManager artifactHandlerManager, RepositorySystem repositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
+        super(artifactHandlerManager, repositorySystem, wagonMap, changeRecorders);
     }
 
     @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
