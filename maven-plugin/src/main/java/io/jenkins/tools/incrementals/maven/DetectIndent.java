@@ -1,6 +1,6 @@
 package io.jenkins.tools.incrementals.maven;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class DetectIndent {
 

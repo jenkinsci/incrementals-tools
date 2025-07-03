@@ -50,7 +50,7 @@ import org.codehaus.mojo.versions.api.Property;
 import org.codehaus.mojo.versions.api.PropertyVersions;
 import org.codehaus.mojo.versions.api.VersionsHelper;
 import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
-import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
+import org.codehaus.mojo.versions.rewriting.MutableXMLStreamReader;
 import org.eclipse.aether.RepositorySystem;
 
 /**
@@ -83,7 +83,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
         super(artifactHandlerManager, repositorySystem, wagonMap, changeRecorders);
     }
 
-    @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
+    @Override protected void update(MutableXMLStreamReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
         try {
             UpdateChecker checker = new UpdateChecker(message -> getLog().info(message),
                 // TODO use repos.stream().map(MavenArtifactRepository::getUrl).collect(Collectors.toList()) if UpdateChecker.loadVersions is fixed to exclude snapshots and pass authentication
@@ -108,7 +108,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
         }
     }
 
-    private void update(ModifiedPomXMLEventReader pom, List<Dependency> dependencies, UpdateChecker checker) throws Exception {
+    private void update(MutableXMLStreamReader pom, List<Dependency> dependencies, UpdateChecker checker) throws Exception {
         for (Dependency dep : dependencies) {
             Artifact art = toArtifact(dep);
             if (!isIncluded(art)) {
@@ -136,12 +136,12 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 getLog().info("No update found for " + toString(dep));
             } else {
                 getLog().info("Can update dependency " + toString(dep) + " to " + result.version);
-                PomHelper.setDependencyVersion(pom, groupId, artifactId, version, result.version.toString(), getProject().getModel());
+                PomHelper.setDependencyVersion(pom, groupId, artifactId, version, result.version.toString(), getProject().getModel(), getLog());
             }
         }
     }
 
-    private void updateProperties(ModifiedPomXMLEventReader pom, UpdateChecker checker) throws Exception {
+    private void updateProperties(MutableXMLStreamReader pom, UpdateChecker checker) throws Exception {
         PROPERTY: for (Map.Entry<Property, PropertyVersions> entry : getHelper().getVersionPropertiesMap(VersionsHelper.VersionPropertiesMapRequest.builder().withMavenProject(getProject()).build()).entrySet()) {
             Property property = entry.getKey();
             String name = property.getName();

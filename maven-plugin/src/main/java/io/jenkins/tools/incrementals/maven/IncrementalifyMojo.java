@@ -58,7 +58,7 @@ import org.codehaus.mojo.versions.api.PomHelper;
 import org.codehaus.mojo.versions.api.VersionRetrievalException;
 import org.codehaus.mojo.versions.api.VersionsHelper;
 import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
-import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
+import org.codehaus.mojo.versions.rewriting.MutableXMLStreamReader;
 import org.eclipse.aether.RepositorySystem;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -120,7 +120,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         }
     }
 
-    @Override protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
+    @Override protected void update(MutableXMLStreamReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
         String version = PomHelper.getProjectVersion(pom);
         Matcher m = Pattern.compile("(.+)-SNAPSHOT").matcher(version);
         if (!m.matches()) {
@@ -175,7 +175,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
      * @return The parent artifact or <code>null</code> if no parent is specified.
      * @throws XMLStreamException if something went wrong.
      */
-    private static Artifact getProjectParent( final ModifiedPomXMLEventReader pom, VersionsHelper helper )
+    private static Artifact getProjectParent( final MutableXMLStreamReader pom, VersionsHelper helper )
             throws XMLStreamException
     {
         Stack<String> stack = new Stack<>();
@@ -189,11 +189,11 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
 
         while ( pom.hasNext() )
         {
-            XMLEvent event = pom.nextEvent();
-            if ( event.isStartElement() )
+            pom.next();
+            if ( pom.isStartElement() )
             {
                 stack.push( path );
-                final String elementName = event.asStartElement().getName().getLocalPart();
+                final String elementName = pom.getLocalName();
                 path = path + "/" + elementName;
 
                 if ( matchScopeRegex.matcher( path ).matches() )
@@ -215,7 +215,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
                     }
                 }
             }
-            if ( event.isEndElement() )
+            if ( pom.isEndElement() )
             {
                 path = stack.pop();
             }
@@ -245,18 +245,18 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         return new ReplaceGitHubRepo(m.group(1) + "${gitHubRepo}" + m.group(3), m.group(2));
     }
 
-    private void prependProperty(ModifiedPomXMLEventReader pom, String name, String value) throws XMLStreamException, MojoFailureException {
+    private void prependProperty(MutableXMLStreamReader pom, String name, String value) throws XMLStreamException, MojoFailureException {
         Stack<String> stack = new Stack<>();
         pom.rewind();
         boolean found = false;
         while (pom.hasNext()) {
-            XMLEvent event = pom.nextEvent();
-            if (event.isStartElement()) {
-                stack.push(event.asStartElement().getName().getLocalPart());
+            pom.next();
+            if (pom.isStartElement()) {
+                stack.push(pom.getLocalName());
                 if (stack.equals(Arrays.asList("project", "properties"))) {
                     pom.mark(0);
                 }
-            } else if (event.isEndElement()) {
+            } else if (pom.isEndElement()) {
                 if (stack.equals(Arrays.asList("project", "properties"))) {
                     pom.mark(1);
                     found = true;
