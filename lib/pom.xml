@@ -7,6 +7,7 @@
         <version>1.10-SNAPSHOT</version>
     </parent>
     <artifactId>lib</artifactId>
+    <name>Incrementals Library</name>
     <dependencies>
         <dependency>
             <groupId>com.github.spotbugs</groupId>

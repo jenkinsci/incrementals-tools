@@ -7,6 +7,7 @@
         <version>1.10-SNAPSHOT</version>
     </parent>
     <artifactId>incrementals-enforcer-rules</artifactId>
+    <name>Incrementals Enforcer Rules</name>
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
