@@ -27,7 +27,6 @@
         <tag>HEAD</tag>
     </scm>
     <properties>
-        <maven.compiler.release>17</maven.compiler.release>
         <maven.version>3.9.6</maven.version>
     </properties>
     <modules>
