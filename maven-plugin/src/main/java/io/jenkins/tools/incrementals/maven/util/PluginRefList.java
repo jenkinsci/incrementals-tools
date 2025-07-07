@@ -72,6 +72,6 @@ public class PluginRefList extends ArrayList<PluginRef> {
             outputLines.add(ref.toPluginsTxtString());
         }
 
-        Files.writeString(dest.toPath(), String.join("\n", outputLines));
+        Files.writeString(dest.toPath(), String.join("\n", outputLines) + "\n");
     }
 }
