@@ -27,6 +27,8 @@ package io.jenkins.tools.incrementals.maven;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -35,11 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
 
-import com.google.common.collect.ImmutableSet;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
@@ -72,7 +70,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
     private static final String MINIMUM_PLUGIN_PARENT = "3.10";
     public static final String JENKINS_POM = "org.jenkins-ci:jenkins:pom";
     public static final String PLUGIN_POM = "org.jenkins-ci.plugins:plugin:pom";
-    private static final Set<String> PARENT_DEPENDENCIES = ImmutableSet.of(JENKINS_POM, PLUGIN_POM);
+    private static final Set<String> PARENT_DEPENDENCIES = Set.of(JENKINS_POM, PLUGIN_POM);
 
     @Component
     private BuildPluginManager pluginManager;
@@ -109,11 +107,11 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
             executionEnvironment(project, session, pluginManager));
         File mavenConfig = new File(dotMvn, "maven.config");
         try {
-            String existing = mavenConfig.isFile() ? FileUtils.readFileToString(mavenConfig, "UTF-8") : "";
+            String existing = mavenConfig.isFile() ? Files.readString(mavenConfig.toPath(), StandardCharsets.UTF_8) : "";
             dotMvn.mkdirs();
-            FileUtils.writeStringToFile(mavenConfig, "-Pconsume-incrementals\n-Pmight-produce-incrementals\n" + existing, "UTF-8");
+            Files.writeString(mavenConfig.toPath(), "-Pconsume-incrementals\n-Pmight-produce-incrementals\n" + existing, StandardCharsets.UTF_8);
             try (InputStream is = IncrementalifyMojo.class.getResourceAsStream("prototype-extensions.xml")) {
-                FileUtils.writeStringToFile(extensionsXml, IOUtils.toString(is).replace("@VERSION@", gclmeNewestVersion.toString()));
+                Files.writeString(extensionsXml.toPath(), new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("@VERSION@", gclmeNewestVersion.toString()), StandardCharsets.UTF_8);
             }
         } catch (IOException x) {
             throw new MojoExecutionException("failed to update " + dotMvn, x);

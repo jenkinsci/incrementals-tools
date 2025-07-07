@@ -266,7 +266,7 @@ public final class UpdateChecker {
             throw new IllegalStateException("Usage: java " + UpdateChecker.class.getName() + " <groupId> <artifactId> <currentVersion> <branch>");
         }
         VersionAndRepo result = new UpdateChecker(
-                message -> System.err.println(message),
+                System.err::println,
                 Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/")).
             find(argv[0], argv[1], argv[2], argv[3]);
         if (result != null) {

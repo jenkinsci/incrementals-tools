@@ -23,8 +23,6 @@
  */
 package io.jenkins.tools.incrementals.maven.util;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Dependency;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -32,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +45,7 @@ public class PluginRefList extends ArrayList<PluginRef> {
         PluginRefList plugins = new PluginRefList();
         try(BufferedReader br = new BufferedReader(new FileReader(file))) {
             for(String line; (line = br.readLine()) != null; ) {
-                if (StringUtils.isBlank(line) || line.startsWith("#")) {
+                if (line.isBlank() || line.startsWith("#")) {
                     plugins.add(PluginRef.forComment(line));
                 } else {
                     plugins.add(PluginRef.fromString(line));
@@ -73,6 +72,6 @@ public class PluginRefList extends ArrayList<PluginRef> {
             outputLines.add(ref.toPluginsTxtString());
         }
 
-        FileUtils.writeLines(dest, outputLines);
+        Files.writeString(dest.toPath(), String.join("\n", outputLines) + "\n");
     }
 }
