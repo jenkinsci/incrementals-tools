@@ -1,11 +1,9 @@
 package io.jenkins.tools.incrementals.maven;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class DetectIndent {
 
   public Indent detect(String input) {
-    if (StringUtils.isNotEmpty(input)) {
+    if (input != null && !input.isEmpty()) {
       int size = 0;
       char indent = ' ';
       String[] inputs = input.split("(\r\n|\r|\n)");
@@ -31,7 +29,7 @@ public class DetectIndent {
     return new Indent();
   }
 
-  public class Indent {
+  public static class Indent {
     int size = 0;
     char type = ' ';
 
@@ -44,7 +42,7 @@ public class DetectIndent {
     }
 
     public String getIndent() {
-      return StringUtils.repeat(String.valueOf(type), size);
+      return String.valueOf(type).repeat(size);
     }
 
     public int getSize() {

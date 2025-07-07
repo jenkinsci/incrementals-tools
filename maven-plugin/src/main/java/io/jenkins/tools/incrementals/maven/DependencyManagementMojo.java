@@ -13,19 +13,19 @@ public interface DependencyManagementMojo {
         buf.append(d.getGroupId());
         buf.append(':');
         buf.append(d.getArtifactId());
-        if (d.getType() != null && d.getType().length() > 0) {
+        if (d.getType() != null && !d.getType().isEmpty()) {
             buf.append(':');
             buf.append(d.getType());
         } else {
             buf.append(":jar");
         }
 
-        if (d.getClassifier() != null && d.getClassifier().length() > 0) {
+        if (d.getClassifier() != null && !d.getClassifier().isEmpty()) {
             buf.append(':');
             buf.append(d.getClassifier());
         }
 
-        if (d.getVersion() != null && d.getVersion().length() > 0) {
+        if (d.getVersion() != null && !d.getVersion().isEmpty()) {
             buf.append(":");
             buf.append(d.getVersion());
         }
