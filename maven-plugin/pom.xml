@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.jenkins.tools.incrementals</groupId>
         <artifactId>parent</artifactId>
-        <version>1.11-SNAPSHOT</version>
+        <version>1.11</version>
     </parent>
     <artifactId>incrementals-maven-plugin</artifactId>
     <name>Incrementals Maven Plugin</name>
