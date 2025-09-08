@@ -69,12 +69,12 @@ public class ReincrementalifyMojo extends AbstractMojo {
             throw new MojoFailureException("Unexpected version: " + version);
         }
         properties.setProperty("dollar", "$");
-        executeMojo(plugin("org.codehaus.mojo", "versions-maven-plugin", "2.5"), "set",
+        executeMojo(plugin("org.codehaus.mojo", "versions-maven-plugin", "2.19.0"), "set",
             configuration(
                 element("newVersion", "${dollar}{revision}${dollar}{changelist}"),
                 element("generateBackupPoms", "false")),
             executionEnvironment(project, mavenSession, pluginManager));
-        executeMojo(plugin("org.codehaus.mojo", "versions-maven-plugin", "2.5"), "set-property",
+        executeMojo(plugin("org.codehaus.mojo", "versions-maven-plugin", "2.19.0"), "set-property",
             configuration(
                 element("property", "revision"),
                 element("newVersion", m.group(1)),
