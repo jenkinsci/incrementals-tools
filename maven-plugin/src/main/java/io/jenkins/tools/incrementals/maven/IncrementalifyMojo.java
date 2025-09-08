@@ -230,7 +230,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
                     }
                 }
             }
-            if ( pom.isEndElement() )
+            else if ( pom.isEndElement() )
             {
                 path = stack.pop();
             }
