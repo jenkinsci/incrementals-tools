@@ -51,6 +51,7 @@ import org.codehaus.mojo.versions.api.PropertyVersions;
 import org.codehaus.mojo.versions.api.VersionsHelper;
 import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
 import org.codehaus.mojo.versions.rewriting.MutableXMLStreamReader;
+import org.codehaus.mojo.versions.utils.ArtifactFactory;
 import org.eclipse.aether.RepositorySystem;
 
 /**
@@ -79,8 +80,65 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
     @Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true)
     private List<MavenArtifactRepository> repos;
 
-    @Inject public UpdateMojo(ArtifactHandlerManager artifactHandlerManager, RepositorySystem repositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
-        super(artifactHandlerManager, repositorySystem, wagonMap, changeRecorders);
+    /**
+     * Whether to allow snapshots when searching for the latest version of an artifact.
+     *
+     * @since 1.11
+     */
+    @Parameter(property = "allowSnapshots", defaultValue = "false")
+    protected boolean allowSnapshots;
+
+    /**
+     * Whether to process the dependencies section of the project.
+     * @since 1.11
+     */
+    @Parameter(property = "processDependencies", defaultValue = "true")
+    private boolean processDependencies = true;
+
+    /**
+     * Whether to process the dependencyManagement section of the project.
+     * @since 1.11
+     */
+    @Parameter(property = "processDependencyManagement", defaultValue = "true")
+    private boolean processDependencyManagement = true;
+
+    /**
+     * Whether to process the parent section of the project.
+     * @since 1.11
+     */
+    @Parameter(property = "processParent", defaultValue = "false")
+    private boolean processParent = false;
+
+    /**
+     * Whether to skip processing dependencies that are produced as part of the current reactor.
+     * @since 1.11
+     */
+    @Parameter(property = "excludeReactor", defaultValue = "true")
+    private boolean excludeReactor = true;
+
+    @Inject public UpdateMojo(ArtifactFactory artifactFactory, RepositorySystem repositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders)
+            throws MojoExecutionException {
+        super(artifactFactory, repositorySystem, wagonMap, changeRecorders);
+    }
+
+    @Override
+    protected boolean getAllowSnapshots() {
+        return allowSnapshots;
+    }
+
+    @Override
+    protected boolean getProcessDependencies() {
+        return processDependencies;
+    }
+
+    @Override
+    protected boolean getProcessDependencyManagement() {
+        return processDependencyManagement;
+    }
+
+    @Override
+    public boolean getProcessParent() {
+        return processParent;
     }
 
     @Override protected void update(MutableXMLStreamReader pom) throws MojoExecutionException, MojoFailureException, XMLStreamException {
@@ -88,13 +146,13 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
             UpdateChecker checker = new UpdateChecker(message -> getLog().info(message),
                 // TODO use repos.stream().map(MavenArtifactRepository::getUrl).collect(Collectors.toList()) if UpdateChecker.loadVersions is fixed to exclude snapshots and pass authentication
                 Arrays.asList("https://repo.jenkins-ci.org/releases/", "https://repo.jenkins-ci.org/incrementals/"));
-            if (isProcessingDependencyManagement()) {
+            if (getProcessDependencyManagement()) {
                 DependencyManagement dependencyManagement = getProject().getDependencyManagement();
                 if (dependencyManagement != null) {
                     update(pom, dependencyManagement.getDependencies(), checker);
                 }
             }
-            if (isProcessingDependencies()) {
+            if (getProcessDependencies()) {
                 List<Dependency> dependencies = getProject().getDependencies();
                 if (dependencies != null) {
                     update(pom, dependencies, checker);
@@ -115,7 +173,7 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
                 getLog().debug("Skipping " + toString(dep));
                 continue;
             }
-            if (isExcludeReactor() && isProducedByReactor(dep)) {
+            if (getExcludeReactor() && isProducedByReactor(dep)) {
                 getLog().info("Skipping reactor dep " + toString(dep));
                 continue;
             }
@@ -186,5 +244,4 @@ public class UpdateMojo extends AbstractVersionsDependencyUpdaterMojo {
     private static boolean isIncremental(String version) {
         return version.matches(".+-rc[0-9]+[.][0-9a-f]{12}");
     }
-
 }

@@ -24,6 +24,12 @@
 
 package io.jenkins.tools.incrementals.maven;
 
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,9 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
-
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
@@ -47,18 +51,17 @@ import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.wagon.Wagon;
 import org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.PomHelper;
 import org.codehaus.mojo.versions.api.VersionRetrievalException;
-import org.codehaus.mojo.versions.api.VersionsHelper;
 import org.codehaus.mojo.versions.api.recording.ChangeRecorder;
 import org.codehaus.mojo.versions.rewriting.MutableXMLStreamReader;
+import org.codehaus.mojo.versions.utils.ArtifactFactory;
 import org.eclipse.aether.RepositorySystem;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
  * Sets a project up for Incrementals.
@@ -72,11 +75,24 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
     public static final String PLUGIN_POM = "org.jenkins-ci.plugins:plugin:pom";
     private static final Set<String> PARENT_DEPENDENCIES = Set.of(JENKINS_POM, PLUGIN_POM);
 
-    @Component
+    /**
+     * Whether to allow snapshots when searching for the latest version of an artifact.
+     * @since 1.11
+     */
+    @Parameter(property = "allowSnapshots", defaultValue = "false")
+    protected boolean allowSnapshots;
+
+    @Inject
     private BuildPluginManager pluginManager;
 
-    @Inject public IncrementalifyMojo(ArtifactHandlerManager artifactHandlerManager, RepositorySystem repositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders) {
-        super(artifactHandlerManager, repositorySystem, wagonMap, changeRecorders);
+    @Inject public IncrementalifyMojo(ArtifactFactory artifactFactory, RepositorySystem repositorySystem, Map<String, Wagon> wagonMap, Map<String, ChangeRecorder> changeRecorders)
+            throws MojoExecutionException {
+        super(artifactFactory, repositorySystem, wagonMap, changeRecorders);
+    }
+
+    @Override
+    protected boolean getAllowSnapshots() {
+        return allowSnapshots;
     }
 
     @Override public void execute() throws MojoExecutionException, MojoFailureException {
@@ -87,7 +103,9 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         }
         ArtifactVersions gclmeVersions;
         try {
-            gclmeVersions = getHelper().lookupArtifactVersions(getHelper().createDependencyArtifact("io.jenkins.tools.incrementals", "git-changelist-maven-extension", "[0,)", "type", null, null, false), true);
+            Artifact artifact = artifactFactory.createArtifact("io.jenkins.tools.incrementals",
+                    "git-changelist-maven-extension", "[0,)", "type", null, null, false);
+            gclmeVersions = getHelper().lookupArtifactVersions(artifact, true);
         } catch (VersionRetrievalException x) {
             throw new MojoExecutionException(x.getMessage(), x);
         }
@@ -128,7 +146,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         if (!origTag.equals("HEAD")) {
             throw new MojoFailureException("Unexpected tag: " + origTag);
         }
-        Artifact parent = getProjectParent(pom, getHelper());
+        Artifact parent = getProjectParent(pom);
         if (parent == null) {
             throw new MojoFailureException("No <parent> found");
         }
@@ -169,11 +187,10 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
      * Gets the parent artifact from the pom.
      *
      * @param pom    The pom.
-     * @param helper The helper (used to create the artifact).
      * @return The parent artifact or <code>null</code> if no parent is specified.
      * @throws XMLStreamException if something went wrong.
      */
-    private static Artifact getProjectParent( final MutableXMLStreamReader pom, VersionsHelper helper )
+    private Artifact getProjectParent(final MutableXMLStreamReader pom)
             throws XMLStreamException
     {
         Stack<String> stack = new Stack<>();
@@ -222,8 +239,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         {
             return null;
         }
-        return helper.createDependencyArtifact( groupId, artifactId, version, "pom",
-                null, null, false );
+        return artifactFactory.createArtifact( groupId, artifactId, version, "pom", null, null, false );
     }
 
     private static final class ReplaceGitHubRepo {
