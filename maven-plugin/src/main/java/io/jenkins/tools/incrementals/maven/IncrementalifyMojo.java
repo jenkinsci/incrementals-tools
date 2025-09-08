@@ -118,7 +118,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         ArtifactVersion gclmeNewestVersion = gclmeVersions.getNewestVersion(any, false);
         super.execute();
         project.getProperties().setProperty("dollar", "$");
-        executeMojo(plugin("org.codehaus.mojo", "versions-maven-plugin", "2.5"), "set",
+        executeMojo(plugin("org.codehaus.mojo", "versions-maven-plugin", "2.19.0"), "set",
             configuration(
                 element("newVersion", "${dollar}{revision}${dollar}{changelist}"),
                 element("generateBackupPoms", "false")),
