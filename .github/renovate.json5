@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommitsDisabled",
+    "schedule:daily"
+  ],
+  "automerge": true,
+  "ignoreDeps": [
+    // maven core artifacts are provided by the running maven, do not update to prevent consuming something unavailable
+    "org.apache.maven:maven-artifact",
+    "org.apache.maven:maven-core",
+    "org.apache.maven:maven-model",
+    "org.apache.maven:maven-plugin-api",
+    "org.apache.maven:maven-repository-metadata",
+    "org.apache.maven:maven-settings"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/IncrementalifyMojo.java/",
+        "/ReincrementalifyMojo.java/"
+      ],
+      "matchStrings": [
+        "plugin\\(\"org.codehaus.mojo\", \"versions-maven-plugin\", \"(?<currentValue>.*)\"\\)"
+      ],
+      "depNameTemplate": "org.codehaus.mojo:versions-maven-plugin",
+      "datasourceTemplate": "maven"
+    }
+  ],
+  "rebaseWhen": "conflicted"
+}
