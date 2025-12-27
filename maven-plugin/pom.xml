@@ -10,7 +10,7 @@
     <name>Incrementals Maven Plugin</name>
     <packaging>maven-plugin</packaging>
     <properties>
-        <maven-plugin-tools.version>3.15.1</maven-plugin-tools.version>
+        <maven-plugin-tools.version>3.15.2</maven-plugin-tools.version>
         <junit.version>5.13.4</junit.version>
     </properties>
 
