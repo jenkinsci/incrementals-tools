@@ -1,9 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    ":semanticCommitsDisabled",
-    "schedule:daily"
+    "github>jenkinsci/renovate-config"
   ],
   "automerge": true,
   "ignoreDeps": [
@@ -14,9 +12,6 @@
     "org.apache.maven:maven-plugin-api",
     "org.apache.maven:maven-repository-metadata",
     "org.apache.maven:maven-settings"
-  ],
-  "labels": [
-    "dependencies"
   ],
   "customManagers": [
     {
@@ -31,6 +26,5 @@
       "depNameTemplate": "org.codehaus.mojo:versions-maven-plugin",
       "datasourceTemplate": "maven"
     }
-  ],
-  "rebaseWhen": "conflicted"
+  ]
 }
