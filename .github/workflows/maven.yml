@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Setup Maven Action
-      uses: s4u/setup-maven-action@v1.20.0
+      uses: s4u/setup-maven-action@4a02cbd99769e46198135c31d5097c94618ba3f5 # v1.21.0
       with:
         java-version: "${{ matrix.java }}"
     - name: Build with Maven
