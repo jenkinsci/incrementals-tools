@@ -41,17 +41,14 @@ and file as a pull request.
 
 #### Enabling consumption of incrementals
 
-If your plugin has (or may have) dependencies on incremental versions, run:
+If your plugin has (or may have) dependencies on incremental versions, enable the `consume-incrementals` profile when running :
 
 ```bash
-mkdir -p .mvn
-echo -Pconsume-incrementals >> .mvn/maven.config
-git add .mvn
+mvn -Pconsume-incrementals test
 ```
 
-(See [this guide](https://maven.apache.org/docs/3.3.1/release-notes.html#JVM_and_Command_Line_Options) for details on the `.mvn` directory.)
-
 This profile merely activates access to the [Incrementals repository](https://repo.jenkins-ci.org/incrementals/).
+If you are working often with incrementals then you can activate this profile by default using MAVEN_ARGS or in your maven settings.
 
 #### Enabling production of incrementals
 
