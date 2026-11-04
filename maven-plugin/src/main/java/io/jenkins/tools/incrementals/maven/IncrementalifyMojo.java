@@ -127,7 +127,7 @@ public class IncrementalifyMojo extends AbstractVersionsUpdaterMojo {
         try {
             String existing = mavenConfig.isFile() ? Files.readString(mavenConfig.toPath(), StandardCharsets.UTF_8) : "";
             dotMvn.mkdirs();
-            Files.writeString(mavenConfig.toPath(), "-Pconsume-incrementals\n-Pmight-produce-incrementals\n" + existing, StandardCharsets.UTF_8);
+            Files.writeString(mavenConfig.toPath(), "-Pmight-produce-incrementals\n" + existing, StandardCharsets.UTF_8);
             try (InputStream is = IncrementalifyMojo.class.getResourceAsStream("prototype-extensions.xml")) {
                 Files.writeString(extensionsXml.toPath(), new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("@VERSION@", gclmeNewestVersion.toString()), StandardCharsets.UTF_8);
             }
